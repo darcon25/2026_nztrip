@@ -36,7 +36,7 @@ export default function Overview() {
       transition={{ duration: 0.5 }}
       className="space-y-8"
     >
-      <div className="bg-slate-900/50 backdrop-blur-sm p-8 rounded-[2.5rem] shadow-sm border border-slate-800">
+      <div className="p-8 rounded-[2.5rem] shadow-sm border border-[#1a3448]/60" style={{background: 'rgba(8, 22, 42, 0.6)', backdropFilter: 'blur(8px)'}}>
         <h2 className="text-2xl font-black text-white mb-4 tracking-tight flex items-center gap-2">
           <Info className="w-6 h-6 text-sky-400" />
           旅程概覽
@@ -58,7 +58,7 @@ export default function Overview() {
               </div>
               <div className="bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-700">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 text-center">參與人數</p>
-                <p className="text-3xl font-black text-white text-center">19<span className="text-sm ml-1 text-slate-500">人</span></p>
+                <p className="text-3xl font-black text-white text-center">22<span className="text-sm ml-1 text-slate-500">人</span></p>
               </div>
             </div>
           </div>
@@ -84,9 +84,9 @@ export default function Overview() {
             </div>
 
             <div className="mt-8 pt-4 border-t border-slate-700 flex justify-between items-center">
-              <p className="text-xs font-black text-slate-500 italic">總計共 14大 5小</p>
+              <p className="text-xs font-black text-slate-500 italic">總計共 16大 6小</p>
               <div className="bg-sky-500 text-slate-900 px-4 py-1 rounded-full text-xs font-black">
-                19 人
+                22 人
               </div>
             </div>
           </div>

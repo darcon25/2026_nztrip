@@ -23,9 +23,17 @@ export interface DayData {
 export interface BudgetData {
   id: string;
   name: string;
+  hc: number;  // Household Count - 家庭成員數
   car: number;
-  hotel: number;
+  carBooking: number;  // 租車預訂費用
+  accommodation: number;
+  accommodationBooking: number;  // 住宿預訂費用
   total: number;
+  remark: string;
+  carDepositPaid?: boolean;
+  carBalancePaid?: boolean;
+  accommodationDepositPaid?: boolean;
+  accommodationBalancePaid?: boolean;
 }
 
 export interface ArrivalData {
@@ -60,12 +68,25 @@ export async function getAllData() {
       fetchCSV('1143344383')   // Detail daily
     ]);
 
+    const parsePaidFlag = (value: any) => {
+      const text = String(value || '').trim().toLowerCase();
+      return ['true', 'yes', 'y', '1', '已', '✓'].includes(text);
+    };
+
     const budget: BudgetData[] = budgetRaw.map(row => ({
-      id: String(row.id || row.ID),
-      name: String(row.name || row.Name),
+      id: String(row.id || row.ID).toLowerCase(),
+      name: String(row.name || row.Name).toUpperCase(),
+      hc: Number(row.hc || row.HC || 1),
       car: Number(row.car || row.Car || 0),
-      hotel: Number(row.hotel || row.Hotel_Cost || 0),
-      total: Number(row.total || row.Total || 0)
+      carBooking: Number(row['car booking'] || row.carBooking || row.Car_Booking || 0),
+      accommodation: Number(row.accomadation || row.accommodation || row.Accommodation || 0),
+      accommodationBooking: Number(row['accomadation booking'] || row.accommodationBooking || row.Accommodation_Booking || 0),
+      total: Number(row.total || row.Total || 0),
+      remark: String(row.remark || row.Remark || ''),
+      carDepositPaid: parsePaidFlag(row.carDepositPaid || row['car deposit paid'] || row.Car_Deposit_Paid),
+      carBalancePaid: parsePaidFlag(row.carBalancePaid || row['car balance paid'] || row.Car_Balance_Paid),
+      accommodationDepositPaid: parsePaidFlag(row.accommodationDepositPaid || row['accommodation deposit paid'] || row.Accommodation_Deposit_Paid),
+      accommodationBalancePaid: parsePaidFlag(row.accommodationBalancePaid || row['accommodation balance paid'] || row.Accommodation_Balance_Paid),
     }));
 
     const days: DayData[] = daysRaw.map(row => {
@@ -96,7 +117,7 @@ export async function getAllData() {
       { type: 'First Arrival', time: '7/22 13:25', detail: 'Fenix 家 (2大)\nJerry 家 (2大1小)\nZiv 家 (2大1小)', color: 'bg-sky-600' },
       { type: '2nd Arrival', time: '7/22 14:35', detail: 'Cathy 家 (4大)', color: 'bg-sky-400' },
       { type: '3rd Arrival', time: '7/23 00:20', detail: 'Richard 家 (2大2小)', color: 'bg-sky-300' },
-      { type: 'Final Arrival', time: '7/24 14:35', detail: 'Max 家 (2大1小)', color: 'bg-indigo-600' }
+      { type: 'Final Arrival', time: '7/24 14:35', detail: 'Max 家 (2大1小)\nJames 家 (2大1小)', color: 'bg-indigo-600' }
     ];
 
     return { days, budget, arrivals };

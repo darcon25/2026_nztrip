@@ -3,18 +3,20 @@
 
 @theme {
   --font-sans: "Noto Sans TC", ui-sans-serif, system-ui, sans-serif;
-  
-  --color-arctic-frost-bg: #0f172a;
-  --color-arctic-frost-primary: #38bdf8;
-  --color-arctic-frost-secondary: #818cf8;
-  --color-arctic-frost-accent: #fbbf24;
+
+  --color-arctic-frost-bg: #060f1c;
+  --color-arctic-frost-primary: #7ab8d4;
+  --color-arctic-frost-secondary: #a8c8dc;
+  --color-arctic-frost-accent: #c8e4f0;
 }
 
 @layer base {
   body {
-    @apply bg-arctic-frost-bg text-slate-200 font-sans relative min-h-screen;
+    @apply font-sans relative min-h-screen;
+    background: linear-gradient(180deg, #1e3f60 0%, #142d4a 35%, #0d2038 70%, #081828 100%);
+    color: #d4e8f4;
   }
-  
+
   body::before {
     content: "";
     position: fixed;
@@ -25,16 +27,18 @@
     background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1920');
     background-size: cover;
     background-position: center;
-    opacity: 0.1;
+    opacity: 0.4;
     z-index: -1;
     pointer-events: none;
-    filter: grayscale(1) brightness(0.5);
+    filter: brightness(1) saturate(1.1);
   }
 }
 
 @layer components {
   .glass-effect {
-    @apply bg-slate-900/80 backdrop-blur-md;
+    background: rgba(6, 18, 35, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
   
   .no-scrollbar::-webkit-scrollbar {

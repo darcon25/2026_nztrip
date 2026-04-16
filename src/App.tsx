@@ -18,9 +18,9 @@ export default function App() {
       <div className="min-h-screen">
       {/* Header & Navigation */}
       <header className="sticky top-0 z-50 glass-effect border-b border-slate-800">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <div className="flex items-center gap-2 shrink-0">
               <div className="bg-sky-500 p-1.5 rounded-lg shadow-lg">
                 <span className="text-white font-black italic">NZ</span>
               </div>
@@ -28,21 +28,28 @@ export default function App() {
                 2026 南島家族旅遊
               </span>
             </div>
-            <nav className="flex space-x-6">
+            <nav className="flex overflow-x-auto scrollbar-none gap-1 sm:gap-6">
               {(['overview', 'itinerary', 'budget', 'visa'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={cn(
-                    "py-5 text-sm font-bold transition-all border-b-2 border-transparent",
-                    activeTab === tab 
-                      ? "border-sky-500 text-sky-400" 
+                    "py-4 sm:py-5 px-2 sm:px-1 text-xs sm:text-sm font-bold transition-all border-b-2 border-transparent whitespace-nowrap shrink-0",
+                    activeTab === tab
+                      ? "border-sky-500 text-sky-400"
                       : "text-slate-400 hover:text-sky-400"
                   )}
                 >
-                  {tab === 'overview' ? '總覽' : 
-                   tab === 'itinerary' ? '詳細日程' : 
-                   tab === 'budget' ? '預算分攤' : '簽證'}
+                  <span className="sm:hidden">
+                    {tab === 'overview' ? '總覽' :
+                     tab === 'itinerary' ? '日程' :
+                     tab === 'budget' ? '預算' : '注意事項'}
+                  </span>
+                  <span className="hidden sm:inline">
+                    {tab === 'overview' ? '總覽' :
+                     tab === 'itinerary' ? '詳細日程' :
+                     tab === 'budget' ? '預算分攤' : '出發前檢查事項'}
+                  </span>
                 </button>
               ))}
             </nav>
@@ -50,7 +57,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && <Overview key="overview" />}
           {activeTab === 'itinerary' && <Itinerary key="itinerary" />}
