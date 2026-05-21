@@ -2,12 +2,18 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getAllData, DayData, BudgetData, ArrivalData } from './services/googleSheetService';
 import { days as fallbackDays, familyBudgets as fallbackBudget } from './constants';
 
+export type Tab = 'overview' | 'itinerary' | 'budget' | 'visa';
+
 interface DataContextType {
   days: DayData[];
   budget: BudgetData[];
   arrivals: ArrivalData[];
   loading: boolean;
   error: string | null;
+  activeTab: Tab;
+  setActiveTab: (tab: Tab) => void;
+  selectedDay: DayData | null;
+  setSelectedDay: (day: DayData) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -26,16 +32,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [selectedDay, setSelectedDayState] = useState<DayData | null>(null);
+
   useEffect(() => {
     async function loadData() {
       try {
         const result = await getAllData();
         if (result) {
-          setData(prev => ({
-            days: result.days || prev.days,
-            budget: result.budget || prev.budget,
-            arrivals: result.arrivals || prev.arrivals
-          }));
+          setData(prev => {
+            const newDays = result.days || prev.days;
+            return {
+              days: newDays,
+              budget: result.budget || prev.budget,
+              arrivals: result.arrivals || prev.arrivals
+            };
+          });
         }
       } catch (err) {
         console.error('Failed to load data from Google Sheets:', err);
@@ -47,8 +59,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     loadData();
   }, []);
 
+  // Sync selectedDay with the loaded days when loading completes or days change
+  useEffect(() => {
+    if (data.days.length > 0 && !selectedDay) {
+      setSelectedDayState(data.days[0]);
+    }
+  }, [data.days, selectedDay]);
+
+  const setSelectedDay = (day: DayData) => {
+    setSelectedDayState(day);
+  };
+
   return (
-    <DataContext.Provider value={{ ...data, loading, error }}>
+    <DataContext.Provider value={{ 
+      ...data, 
+      loading, 
+      error, 
+      activeTab, 
+      setActiveTab, 
+      selectedDay, 
+      setSelectedDay 
+    }}>
       {children}
     </DataContext.Provider>
   );

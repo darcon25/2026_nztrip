@@ -32,14 +32,8 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function Itinerary() {
-  const { days } = useData();
-  const [selectedDay, setSelectedDay] = useState(days[0]);
-
-  useEffect(() => {
-    if (days.length > 0 && !days.find(d => d.day === selectedDay?.day)) {
-      setSelectedDay(days[0]);
-    }
-  }, [days]);
+  const { days, selectedDay: contextSelectedDay, setSelectedDay } = useData();
+  const selectedDay = contextSelectedDay || days[0];
 
   const openGoogleMap = (location: string) => {
     const query = encodeURIComponent(location);
