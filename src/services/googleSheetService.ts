@@ -43,10 +43,11 @@ export interface ArrivalData {
   color: string;
 }
 
-const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTYDbyWoOERQKg5uBjh6MmVl2gPGVy7CAG9XV1VbjAi3DK-vNIOjn50RYek4c8dV9PBjNf9tohYGF8Y/pub';
+const SPREADSHEET_ID = '17BL4lKnKm00OzekgbPaaLZuUgJVbvF9VthpSHVwhBGo';
+const BASE_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq`;
 
 async function fetchCSV(gid: string) {
-  const url = `${BASE_URL}?gid=${gid}&single=true&output=csv`;
+  const url = `${BASE_URL}?tqx=out:csv&gid=${gid}`;
   const response = await fetch(url);
   const csvText = await response.text();
   return new Promise<any[]>((resolve, reject) => {
