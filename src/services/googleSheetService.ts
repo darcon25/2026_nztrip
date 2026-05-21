@@ -74,15 +74,22 @@ export async function getAllData() {
       return ['true', 'yes', 'y', '1', '已', '✓'].includes(text);
     };
 
+    const parseNumber = (value: any): number => {
+      if (value === undefined || value === null || String(value).trim() === '') return 0;
+      const cleanText = String(value).replace(/,/g, '').trim();
+      const parsed = parseFloat(cleanText);
+      return isNaN(parsed) ? 0 : parsed;
+    };
+
     const budget: BudgetData[] = budgetRaw.map(row => ({
       id: String(row.id || row.ID).toLowerCase(),
       name: String(row.name || row.Name).toUpperCase(),
-      hc: Number(row.hc || row.HC || 1),
-      car: Number(row.car || row.Car || 0),
-      carBooking: Number(row['car booking'] || row.carBooking || row.Car_Booking || 0),
-      accommodation: Number(row.accomadation || row.accommodation || row.Accommodation || 0),
-      accommodationBooking: Number(row['accomadation booking'] || row.accommodationBooking || row.Accommodation_Booking || 0),
-      total: Number(row.total || row.Total || 0),
+      hc: parseNumber(row.hc || row.HC || 1),
+      car: parseNumber(row.car || row.Car || 0),
+      carBooking: parseNumber(row['car booking'] || row.carBooking || row.Car_Booking || 0),
+      accommodation: parseNumber(row.accomadation || row.accommodation || row.Accommodation || 0),
+      accommodationBooking: parseNumber(row['accomadation booking'] || row.accommodationBooking || row.Accommodation_Booking || 0),
+      total: parseNumber(row.total || row.Total || 0),
       remark: String(row.remark || row.Remark || ''),
       carDepositPaid: parsePaidFlag(row.carDepositPaid || row['car deposit paid'] || row.Car_Deposit_Paid),
       carBalancePaid: parsePaidFlag(row.carBalancePaid || row['car balance paid'] || row.Car_Balance_Paid),
