@@ -4,7 +4,7 @@ import {
   MapPin, AlertCircle, Coffee, Utensils, Moon, 
   Car, ShoppingCart, Users, Snowflake, Home, 
   Star, Clock, Camera, Mountain, Ship, Flame, 
-  Sandwich, Gift, Heart
+  Sandwich, Gift, Heart, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useData } from '../DataContext';
 import { cn } from '../lib/utils';
@@ -46,6 +46,48 @@ export default function Itinerary() {
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
   };
 
+  const sliderRef = React.useRef<HTMLDivElement>(null);
+  const [isDown, setIsDown] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [dragMoved, setDragMoved] = useState(false);
+
+  const scrollSlider = (direction: 'left' | 'right') => {
+    if (!sliderRef.current) return;
+    const scrollAmount = 300;
+    sliderRef.current.scrollTo({
+      left: sliderRef.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount),
+      behavior: 'smooth'
+    });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!sliderRef.current) return;
+    setIsDown(true);
+    setStartX(e.pageX - sliderRef.current.offsetLeft);
+    setScrollLeft(sliderRef.current.scrollLeft);
+    setDragMoved(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDown(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDown(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDown || !sliderRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - sliderRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    if (Math.abs(walk) > 5) {
+      setDragMoved(true);
+    }
+    sliderRef.current.scrollLeft = scrollLeft - walk;
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -55,22 +97,52 @@ export default function Itinerary() {
     >
       <div className="bg-slate-900/50 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-slate-800">
         <div className="flex flex-col gap-6">
-          <div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
-            {days.map((d) => (
-              <button
-                key={d.day}
-                onClick={() => setSelectedDay(d)}
-                className={cn(
-                  "flex-shrink-0 px-8 py-5 rounded-[2rem] font-black transition-all text-lg",
-                  selectedDay.day === d.day 
-                    ? "bg-sky-500 text-slate-900 shadow-xl scale-105 -translate-y-1" 
-                    : "bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:shadow-md"
-                )}
-              >
-                <span className="text-xs block opacity-70 uppercase tracking-widest italic mb-1">Day {d.day}</span>
-                {d.date}
-              </button>
-            ))}
+          <div className="relative group/slider select-none">
+            {/* Left Arrow Button */}
+            <button 
+              onClick={() => scrollSlider('left')}
+              className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-800/95 border border-slate-700 text-slate-300 hover:text-sky-400 hover:bg-slate-700 hover:scale-105 flex items-center justify-center shadow-lg transition-all cursor-pointer opacity-80 hover:opacity-100"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <div 
+              ref={sliderRef}
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseLeave}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              className="flex overflow-x-auto gap-4 pb-4 no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing"
+            >
+              {days.map((d) => (
+                <button
+                  key={d.day}
+                  onClick={() => {
+                    if (dragMoved) return;
+                    setSelectedDay(d);
+                  }}
+                  className={cn(
+                    "flex-shrink-0 px-8 py-5 rounded-[2rem] font-black transition-all text-lg",
+                    selectedDay.day === d.day 
+                      ? "bg-sky-500 text-slate-900 shadow-xl scale-105 -translate-y-1" 
+                      : "bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:shadow-md"
+                  )}
+                >
+                  <span className="text-xs block opacity-70 uppercase tracking-widest italic mb-1">Day {d.day}</span>
+                  {d.date}
+                </button>
+              ))}
+            </div>
+
+            {/* Right Arrow Button */}
+            <button 
+              onClick={() => scrollSlider('right')}
+              className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-800/95 border border-slate-700 text-slate-300 hover:text-sky-400 hover:bg-slate-700 hover:scale-105 flex items-center justify-center shadow-lg transition-all cursor-pointer opacity-80 hover:opacity-100"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
           </div>
         </div>
       </div>
