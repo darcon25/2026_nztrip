@@ -6,6 +6,7 @@ import Expenses from './components/Expenses';
 import Itinerary from './components/Itinerary';
 import Duty from './components/Duty';
 import Lodging from './components/Lodging';
+import AdventureMap from './components/AdventureMap';
 
 import { DataProvider } from './DataContext';
 
@@ -72,7 +73,7 @@ export default function App() {
 
         <main className="max-w-6xl mx-auto px-4 py-8 space-y-12">
           <Section id="map" title="互動地圖">
-            <Placeholder title="互動地圖" icon={Map} />
+            <AdventureMap />
           </Section>
 
           <Section id="highlights" title="景點 × 活動">
