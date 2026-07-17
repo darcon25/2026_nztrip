@@ -3,44 +3,39 @@
 
 @theme {
   --font-sans: "Noto Sans TC", ui-sans-serif, system-ui, sans-serif;
-  
-  --color-arctic-frost-bg: #0f172a;
-  --color-arctic-frost-primary: #38bdf8;
-  --color-arctic-frost-secondary: #818cf8;
-  --color-arctic-frost-accent: #fbbf24;
+
+  --color-camp-bg: #EFE8D8;
+  --color-camp-card: #F7F2E7;
+  --color-camp-text: #4A2C17;
+  --color-camp-muted: #8B6F4E;
+  --color-camp-border: #DDD1B8;
+  --color-camp-brown: #A9682F;
+  --color-camp-brown-dark: #8A5222;
+  --color-camp-green: #4C6B3C;
+  --color-camp-green-dark: #3A5430;
+  --color-camp-accent: #C88A3C;
 }
 
 @layer base {
   body {
-    @apply bg-arctic-frost-bg text-slate-200 font-sans relative min-h-screen;
+    @apply bg-camp-bg text-camp-text font-sans relative min-h-screen;
   }
-  
-  body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1920');
-    background-size: cover;
-    background-position: center;
-    opacity: 0.1;
-    z-index: -1;
-    pointer-events: none;
-    filter: grayscale(1) brightness(0.5);
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
   }
 }
 
 @layer components {
   .glass-effect {
-    @apply bg-slate-900/80 backdrop-blur-md;
+    @apply bg-camp-card/90 backdrop-blur-md;
   }
-  
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -55,4 +50,3 @@
 .animate-pulse-soft {
   animation: pulse-soft 3s infinite ease-in-out;
 }
-

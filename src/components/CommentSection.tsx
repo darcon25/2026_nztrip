@@ -79,9 +79,9 @@ export default function CommentSection({ dayId, itemIdx }: CommentSectionProps) 
   };
 
   return (
-    <div className="mt-6 pt-6 border-t border-slate-800 space-y-4">
-      <div className="flex items-center gap-2 text-white font-black text-sm">
-        <MessageSquare className="w-4 h-4 text-sky-400" />
+    <div className="mt-6 pt-6 border-t border-camp-border space-y-4">
+      <div className="flex items-center gap-2 text-camp-text font-black text-sm">
+        <MessageSquare className="w-4 h-4 text-camp-brown" />
         留言對話
       </div>
 
@@ -91,12 +91,12 @@ export default function CommentSection({ dayId, itemIdx }: CommentSectionProps) 
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="新增留言..."
-          className="w-full bg-slate-800 border-2 border-transparent rounded-xl px-4 py-3 pr-12 text-sm font-medium text-white placeholder:text-slate-500 focus:bg-slate-700 focus:border-sky-500 focus:outline-none transition-all"
+          className="w-full min-h-[48px] bg-camp-bg border-2 border-camp-border rounded-xl px-4 py-3 pr-12 text-sm font-medium text-camp-text placeholder:text-camp-muted focus:border-camp-brown focus:outline-none transition-all"
         />
         <button
           type="submit"
           disabled={isLoading || !newComment.trim()}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-sky-400 hover:bg-sky-900/50 rounded-lg transition-colors disabled:opacity-50"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-camp-brown hover:bg-camp-brown/10 rounded-lg transition-colors disabled:opacity-50"
         >
           <Send className="w-4 h-4" />
         </button>
@@ -110,21 +110,21 @@ export default function CommentSection({ dayId, itemIdx }: CommentSectionProps) 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 group"
+              className="bg-camp-bg p-3 rounded-xl border border-camp-border group"
             >
               <div className="flex justify-between items-start gap-2">
-                <p className="text-sm text-slate-300 font-medium leading-relaxed break-words flex-1">
+                <p className="text-sm text-camp-text font-medium leading-relaxed break-words flex-1">
                   {comment.text}
                 </p>
                 <button
                   onClick={() => handleDelete(comment.id)}
-                  className="p-1.5 text-slate-600 hover:text-rose-400 hover:bg-rose-900/30 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                  className="p-1.5 text-camp-muted hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-all"
                   title="刪除留言"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <div className="mt-2 flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-widest italic">
+              <div className="mt-2 flex items-center gap-1.5 text-xs font-black text-camp-muted uppercase tracking-widest">
                 <Clock className="w-3 h-3" />
                 {new Date(comment.timestamp).toLocaleString('zh-TW', {
                   month: 'numeric',
@@ -137,7 +137,7 @@ export default function CommentSection({ dayId, itemIdx }: CommentSectionProps) 
           ))}
         </AnimatePresence>
         {comments.length === 0 && (
-          <p className="text-center text-xs text-slate-500 font-medium italic py-4">
+          <p className="text-center text-sm text-camp-muted font-medium py-4">
             尚無留言，快來搶頭香！
           </p>
         )}
