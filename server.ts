@@ -122,6 +122,11 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  app.delete("/api/expenses", (req, res) => {
+    db.prepare("DELETE FROM expenses").run();
+    res.json({ success: true });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Receipt, Plus, Trash2, Clock, ArrowRight, Wallet } from 'lucide-react';
+import { Receipt, Plus, Trash2, Clock, ArrowRight, Wallet, Calculator, RotateCcw } from 'lucide-react';
 import { useData } from '../DataContext';
 
 interface Expense {
@@ -34,6 +34,8 @@ export default function Expenses() {
   const [evenFamilies, setEvenFamilies] = useState<string[]>([]);
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showSettlement, setShowSettlement] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const nameOf = (id: string) => families.find(f => f.id === id)?.name || id;
 
@@ -143,6 +145,19 @@ export default function Expenses() {
       if (res.ok) fetchExpenses();
     } catch (error) {
       console.error('Failed to delete expense:', error);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      const res = await fetch('/api/expenses', { method: 'DELETE' });
+      if (res.ok) {
+        setConfirmClear(false);
+        setShowSettlement(false);
+        fetchExpenses();
+      }
+    } catch (error) {
+      console.error('Failed to clear expenses:', error);
     }
   };
 
@@ -333,30 +348,74 @@ export default function Expenses() {
           <h3 className="text-xl font-black text-camp-text tracking-tight">結算</h3>
         </div>
 
-        {expenses.length === 0 ? (
-          <p className="text-center text-sm text-camp-muted font-medium py-6">
-            還沒有任何消費紀錄，新增第一筆帳吧！
-          </p>
-        ) : settlement.transfers.length === 0 ? (
-          <p className="text-center text-sm text-camp-muted font-medium py-6">
-            帳目已平衡，大家互不相欠 🎉
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {settlement.transfers.map((t, i) => (
-              <div
-                key={i}
-                className="bg-camp-bg p-4 rounded-2xl border border-camp-border flex items-center justify-between gap-3"
-              >
-                <div className="flex items-center gap-2 flex-wrap text-sm font-black text-camp-text">
-                  <span>{nameOf(t.from)}</span>
-                  <ArrowRight className="w-4 h-4 text-camp-brown" />
-                  <span>{nameOf(t.to)}</span>
-                </div>
-                <span className="font-black text-camp-brown text-base whitespace-nowrap">NZD {t.amount.toFixed(2)}</span>
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <button
+            type="button"
+            onClick={() => setShowSettlement(prev => !prev)}
+            className="flex-1 min-h-[44px] px-5 py-2 rounded-2xl text-sm font-black flex items-center justify-center gap-2 bg-camp-green text-camp-card border-2 border-camp-green shadow-sm hover:opacity-90 active:scale-[0.99] transition-all"
+          >
+            <Calculator className="w-4 h-4" />
+            {showSettlement ? '收合結算' : '結算'}
+          </button>
+
+          {confirmClear ? (
+            <div className="flex-1 flex items-center gap-2 min-h-[44px] px-3 py-2 rounded-2xl bg-camp-brown/10 border-2 border-camp-brown/40">
+              <span className="text-sm font-black text-camp-brown">確定要清空全部消費？</span>
+              <div className="ml-auto flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  className="min-h-[36px] px-3 py-1 rounded-xl text-sm font-black bg-camp-brown text-camp-card border-2 border-camp-brown active:scale-[0.99] transition-all"
+                >
+                  確定
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmClear(false)}
+                  className="min-h-[36px] px-3 py-1 rounded-xl text-sm font-black bg-camp-bg text-camp-muted border-2 border-camp-border active:scale-[0.99] transition-all"
+                >
+                  取消
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmClear(true)}
+              className="flex-1 min-h-[44px] px-5 py-2 rounded-2xl text-sm font-black flex items-center justify-center gap-2 bg-camp-bg text-camp-brown border-2 border-camp-brown/50 hover:bg-camp-brown/10 active:scale-[0.99] transition-all"
+            >
+              <RotateCcw className="w-4 h-4" />
+              已結清歸零
+            </button>
+          )}
+        </div>
+
+        {showSettlement && (
+          expenses.length === 0 ? (
+            <p className="text-center text-sm text-camp-muted font-medium py-6">
+              還沒有消費紀錄
+            </p>
+          ) : settlement.transfers.length === 0 ? (
+            <p className="text-center text-sm text-camp-muted font-medium py-6">
+              帳目已平衡，大家互不相欠 🎉
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {settlement.transfers.map((t, i) => (
+                <div
+                  key={i}
+                  className="bg-camp-bg p-4 rounded-2xl border border-camp-border flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-2 flex-wrap text-sm font-black text-camp-text">
+                    <span>{nameOf(t.from)}</span>
+                    <ArrowRight className="w-4 h-4 text-camp-brown" />
+                    <span>{nameOf(t.to)}</span>
+                  </div>
+                  <span className="font-black text-camp-brown text-base whitespace-nowrap">NZD {t.amount.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          )
         )}
       </div>
 
