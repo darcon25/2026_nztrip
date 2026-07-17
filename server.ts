@@ -20,6 +20,18 @@ db.exec(`
   )
 `);
 
+db.exec(`DROP TABLE IF EXISTS expenses`);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    payer_family TEXT NOT NULL,
+    amount_nzd REAL NOT NULL,
+    description TEXT NOT NULL,
+    splits TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -47,6 +59,65 @@ async function startServer() {
   app.delete("/api/comments/:id", (req, res) => {
     const { id } = req.params;
     const stmt = db.prepare("DELETE FROM comments WHERE id = ?");
+    stmt.run(id);
+    res.json({ success: true });
+  });
+
+  app.get("/api/expenses", (req, res) => {
+    const stmt = db.prepare("SELECT * FROM expenses ORDER BY timestamp DESC");
+    const rows = stmt.all() as any[];
+    const expenses = rows.map((row) => ({
+      ...row,
+      splits: JSON.parse(row.splits),
+    }));
+    res.json(expenses);
+  });
+
+  app.post("/api/expenses", (req, res) => {
+    const { payerFamily, amountNzd, description, splits } = req.body;
+    if (!payerFamily || typeof payerFamily !== "string") {
+      return res.status(400).json({ error: "Payer family is required" });
+    }
+    if (typeof amountNzd !== "number" || !(amountNzd > 0)) {
+      return res.status(400).json({ error: "Amount must be greater than 0" });
+    }
+    if (!description || description.trim() === "") {
+      return res.status(400).json({ error: "Description is required" });
+    }
+    if (!splits || typeof splits !== "object" || Array.isArray(splits)) {
+      return res.status(400).json({ error: "Splits must be an object" });
+    }
+    const entries = Object.entries(splits) as [string, unknown][];
+    if (entries.length === 0) {
+      return res.status(400).json({ error: "Splits must have at least one family" });
+    }
+    let sum = 0;
+    for (const [, value] of entries) {
+      if (typeof value !== "number" || !(value >= 0)) {
+        return res.status(400).json({ error: "Split amounts must be non-negative numbers" });
+      }
+      sum += value;
+    }
+    if (Math.abs(sum - amountNzd) > 0.01) {
+      return res.status(400).json({ error: "Split amounts must sum to the total amount" });
+    }
+    const stmt = db.prepare(
+      "INSERT INTO expenses (payer_family, amount_nzd, description, splits) VALUES (?, ?, ?, ?)"
+    );
+    const info = stmt.run(payerFamily, amountNzd, description, JSON.stringify(splits));
+    res.json({
+      id: info.lastInsertRowid,
+      payer_family: payerFamily,
+      amount_nzd: amountNzd,
+      description,
+      splits,
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  app.delete("/api/expenses/:id", (req, res) => {
+    const { id } = req.params;
+    const stmt = db.prepare("DELETE FROM expenses WHERE id = ?");
     stmt.run(id);
     res.json({ success: true });
   });

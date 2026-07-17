@@ -2,6 +2,7 @@ import React from 'react';
 import { Users, Map, Sparkles, UtensilsCrossed, Home, Wallet } from 'lucide-react';
 import Overview from './components/Overview';
 import Budget from './components/Budget';
+import Expenses from './components/Expenses';
 
 import { DataProvider } from './DataContext';
 
@@ -89,6 +90,8 @@ export default function App() {
 
           <Section id="budget" title="費用分攤 & 記帳">
             <Budget />
+            <h3 className="text-lg md:text-xl font-black text-camp-text mt-10 mb-4 tracking-tight px-1">旅途記帳</h3>
+            <Expenses />
           </Section>
         </main>
 
