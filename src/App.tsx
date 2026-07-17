@@ -4,6 +4,8 @@ import Overview from './components/Overview';
 import Budget from './components/Budget';
 import Expenses from './components/Expenses';
 import Itinerary from './components/Itinerary';
+import Duty from './components/Duty';
+import Lodging from './components/Lodging';
 
 import { DataProvider } from './DataContext';
 
@@ -82,11 +84,11 @@ export default function App() {
           </Section>
 
           <Section id="duty" title="餐廳及煮飯輪值">
-            <Placeholder title="餐廳及煮飯輪值" icon={UtensilsCrossed} />
+            <Duty />
           </Section>
 
           <Section id="lodging" title="住房資訊">
-            <Placeholder title="住房資訊" icon={Home} />
+            <Lodging />
           </Section>
 
           <Section id="budget" title="費用分攤 & 記帳">

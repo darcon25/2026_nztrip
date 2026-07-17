@@ -38,7 +38,21 @@ export interface ArrivalData {
   color: string;
 }
 
+export interface DutyData {
+  date: string; dayId: string; cookFamily?: string;
+  breakfast?: string; lunch?: string; dinner?: string;
+  restaurant?: string; menuUrl?: string; foodRec?: string;
+}
+
+export interface LodgingData {
+  dateRange: string; name: string; address: string;
+  checkin?: string; roomNote?: string;
+}
+
 const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTYDbyWoOERQKg5uBjh6MmVl2gPGVy7CAG9XV1VbjAi3DK-vNIOjn50RYek4c8dV9PBjNf9tohYGF8Y/pub';
+
+const DUTY_GID = '';
+const LODGING_GID = '';
 
 async function fetchCSV(gid: string) {
   const url = `${BASE_URL}?gid=${gid}&single=true&output=csv`;
@@ -105,7 +119,35 @@ export async function getAllData() {
       { type: 'Final Arrival', time: '7/24 14:35', detail: 'Max 家 (2大1小)', color: 'bg-indigo-600' }
     ];
 
-    return { days, budget, arrivals };
+    let duty: DutyData[] | undefined;
+    if (DUTY_GID) {
+      const dutyRaw = await fetchCSV(DUTY_GID);
+      duty = dutyRaw.map(row => ({
+        date: String(row.date),
+        dayId: String(row.day_id),
+        cookFamily: row.cook_family || undefined,
+        breakfast: row.breakfast || undefined,
+        lunch: row.lunch || undefined,
+        dinner: row.dinner || undefined,
+        restaurant: row.restaurant || undefined,
+        menuUrl: row.menu_url || undefined,
+        foodRec: row.food_rec || undefined
+      }));
+    }
+
+    let lodging: LodgingData[] | undefined;
+    if (LODGING_GID) {
+      const lodgingRaw = await fetchCSV(LODGING_GID);
+      lodging = lodgingRaw.map(row => ({
+        dateRange: String(row.date_range),
+        name: String(row.name),
+        address: String(row.address),
+        checkin: row.checkin || undefined,
+        roomNote: row.room_note || undefined
+      }));
+    }
+
+    return { days, budget, arrivals, duty, lodging };
   } catch (error) {
     console.error('Error fetching Google Sheet data:', error);
     return null;
