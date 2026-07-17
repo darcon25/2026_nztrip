@@ -3,6 +3,7 @@ import { Users, Map, Sparkles, UtensilsCrossed, Home, Wallet } from 'lucide-reac
 import Overview from './components/Overview';
 import Budget from './components/Budget';
 import Expenses from './components/Expenses';
+import Itinerary from './components/Itinerary';
 
 import { DataProvider } from './DataContext';
 
@@ -73,7 +74,7 @@ export default function App() {
           </Section>
 
           <Section id="highlights" title="景點 × 活動">
-            <Placeholder title="亮點卡片" icon={Sparkles} />
+            <Itinerary />
           </Section>
 
           <Section id="flights" title="人員班機">

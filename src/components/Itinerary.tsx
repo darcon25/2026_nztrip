@@ -1,193 +1,223 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  MapPin, AlertCircle, Coffee, Utensils, Moon, 
-  Car, ShoppingCart, Users, Snowflake, Home, 
-  Star, Clock, Camera, Mountain, Ship, Flame, 
-  Sandwich, Gift, Heart
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
+import {
+  MapPin, Coffee, Utensils, Moon, Car, ShoppingCart, Users,
+  Snowflake, Home, Star, Clock, Camera, Mountain, Ship, Flame,
+  Sandwich, Gift, Heart, Navigation, MessageSquare, UtensilsCrossed, ExternalLink
 } from 'lucide-react';
 import { useData } from '../DataContext';
 import { cn } from '../lib/utils';
 import CommentSection from './CommentSection';
+import type { DayData, ItineraryItem } from '../services/googleSheetService';
 
 const iconMap: Record<string, React.ReactNode> = {
-  'Car': <Car className="w-5 h-5 text-sky-400" />,
-  'ShoppingCart': <ShoppingCart className="w-5 h-5 text-emerald-400" />,
-  'Users': <Users className="w-5 h-5 text-indigo-400" />,
-  'Utensils': <Utensils className="w-5 h-5 text-orange-400" />,
-  'Snowflake': <Snowflake className="w-5 h-5 text-blue-300" />,
-  'Home': <Home className="w-5 h-5 text-stone-400" />,
-  'Star': <Star className="w-5 h-5 text-amber-300" />,
-  'Clock': <Clock className="w-5 h-5 text-slate-400" />,
-  'Camera': <Camera className="w-5 h-5 text-rose-400" />,
-  'Mountain': <Mountain className="w-5 h-5 text-slate-300" />,
-  'Coffee': <Coffee className="w-5 h-5 text-amber-300" />,
-  'Ship': <Ship className="w-5 h-5 text-cyan-400" />,
-  'Flame': <Flame className="w-5 h-5 text-orange-400" />,
-  'Sandwich': <Sandwich className="w-5 h-5 text-yellow-400" />,
-  'Gift': <Gift className="w-5 h-5 text-purple-400" />,
-  'Heart': <Heart className="w-5 h-5 text-pink-400" />,
-  'Moon': <Moon className="w-5 h-5 text-indigo-300" />,
-  'MapPin': <MapPin className="w-5 h-5 text-sky-400" />,
+  'Car': <Car className="w-6 h-6" />,
+  'ShoppingCart': <ShoppingCart className="w-6 h-6" />,
+  'Users': <Users className="w-6 h-6" />,
+  'Utensils': <Utensils className="w-6 h-6" />,
+  'Snowflake': <Snowflake className="w-6 h-6" />,
+  'Home': <Home className="w-6 h-6" />,
+  'Star': <Star className="w-6 h-6" />,
+  'Clock': <Clock className="w-6 h-6" />,
+  'Camera': <Camera className="w-6 h-6" />,
+  'Mountain': <Mountain className="w-6 h-6" />,
+  'Coffee': <Coffee className="w-6 h-6" />,
+  'Ship': <Ship className="w-6 h-6" />,
+  'Flame': <Flame className="w-6 h-6" />,
+  'Sandwich': <Sandwich className="w-6 h-6" />,
+  'Gift': <Gift className="w-6 h-6" />,
+  'Heart': <Heart className="w-6 h-6" />,
+  'Moon': <Moon className="w-6 h-6" />,
+  'MapPin': <MapPin className="w-6 h-6" />,
 };
+
+function itemIcon(item: ItineraryItem) {
+  return (item.icon && iconMap[item.icon]) || <MapPin className="w-6 h-6" />;
+}
+
+function openGoogleMap(location: string) {
+  const query = encodeURIComponent(location);
+  window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+}
+
+const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }> = ({ day, item, idx }) => {
+  const [imgError, setImgError] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+
+  const target = item.map || item.label;
+  const photoSrc = item.photoUrl || `/api/place-photo?query=${encodeURIComponent(target)}`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.4 }}
+      className="bg-camp-card rounded-[1.75rem] border border-camp-border shadow-sm overflow-hidden flex flex-col"
+    >
+      <div className="relative aspect-video bg-camp-bg">
+        {imgError ? (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-camp-muted">
+            <div className="text-camp-brown">{itemIcon(item)}</div>
+            <span className="text-sm font-bold px-4 text-center">{item.label}</span>
+          </div>
+        ) : (
+          <img
+            src={photoSrc}
+            alt={item.label}
+            loading="lazy"
+            onError={() => setImgError(true)}
+            className="w-full h-full object-cover"
+          />
+        )}
+        <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-camp-brown text-camp-card text-xs font-black shadow">
+          Day {day}
+        </span>
+      </div>
+
+      <div className="p-4 md:p-6 flex flex-col gap-3 flex-1">
+        <div className="flex items-start justify-between gap-2">
+          <h4 className="font-black text-camp-text text-lg tracking-tight leading-snug">{item.label}</h4>
+          {item.time && (
+            <span className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-black text-camp-brown bg-camp-brown/10 px-2 py-1 rounded-lg">
+              <Clock className="w-3.5 h-3.5" />
+              {item.time}
+            </span>
+          )}
+        </div>
+
+        {item.detail && (
+          <p
+            className="text-sm text-camp-muted font-medium leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: item.detail }}
+          />
+        )}
+
+        {(item.foodRec || item.menuUrl) && (
+          <div className="flex flex-col gap-2 bg-camp-bg rounded-xl border border-camp-border p-3">
+            {item.foodRec && (
+              <p className="text-sm font-bold text-camp-green flex items-start gap-1.5">
+                <Flame className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>熱推：{item.foodRec}</span>
+              </p>
+            )}
+            {item.menuUrl && (
+              <a
+                href={item.menuUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-black text-camp-brown hover:underline"
+              >
+                <UtensilsCrossed className="w-4 h-4" />
+                看菜單
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+        )}
+
+        <div className="mt-auto flex flex-col sm:flex-row gap-2 pt-1">
+          <button
+            onClick={() => openGoogleMap(target)}
+            className="flex-1 inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl bg-camp-brown text-camp-card text-sm font-black shadow-sm hover:bg-camp-brown-dark transition-colors"
+          >
+            <Navigation className="w-4 h-4" />
+            開啟導航
+          </button>
+          <button
+            onClick={() => setShowComments((v) => !v)}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl text-sm font-black border-2 transition-colors',
+              showComments
+                ? 'bg-camp-green/10 text-camp-green border-camp-green/40'
+                : 'bg-camp-bg text-camp-text border-camp-border hover:border-camp-brown'
+            )}
+          >
+            <MessageSquare className="w-4 h-4" />
+            留言
+          </button>
+        </div>
+
+        {showComments && <CommentSection dayId={day} itemIdx={idx} />}
+      </div>
+    </motion.div>
+  );
+};
+
+function DayHeader({ day }: { day: DayData }) {
+  const meals = [
+    { icon: <Coffee className="w-4 h-4" />, label: '早', value: day.meals.b },
+    { icon: <Utensils className="w-4 h-4" />, label: '午', value: day.meals.l },
+    { icon: <Moon className="w-4 h-4" />, label: '晚', value: day.meals.d },
+  ];
+  return (
+    <div className="bg-camp-brown/10 rounded-2xl border border-camp-border p-4 flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-camp-brown text-camp-card text-sm font-black">
+          Day {day.day}
+        </span>
+        <span className="text-sm font-black text-camp-text">{day.date}</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {meals.map((m) => (
+          <span key={m.label} className="inline-flex items-center gap-1.5 text-xs font-bold text-camp-muted bg-camp-card px-2.5 py-1 rounded-lg border border-camp-border">
+            <span className="text-camp-brown">{m.icon}</span>
+            {m.label}・{m.value}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Itinerary() {
   const { days } = useData();
-  const [selectedDay, setSelectedDay] = useState(days[0]);
+  const [selectedDay, setSelectedDay] = useState<number | 'all'>('all');
 
-  useEffect(() => {
-    if (days.length > 0 && !days.find(d => d.day === selectedDay?.day)) {
-      setSelectedDay(days[0]);
-    }
-  }, [days]);
-
-  const openGoogleMap = (location: string) => {
-    const query = encodeURIComponent(location);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-  };
+  const visibleDays = selectedDay === 'all' ? days : days.filter((d) => d.day === selectedDay);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-6"
-    >
-      <div className="bg-slate-900/50 backdrop-blur-sm p-8 rounded-3xl shadow-sm border border-slate-800">
-        <div className="flex flex-col gap-6">
-          <div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
-            {days.map((d) => (
-              <button
-                key={d.day}
-                onClick={() => setSelectedDay(d)}
-                className={cn(
-                  "flex-shrink-0 px-8 py-5 rounded-[2rem] font-black transition-all text-lg",
-                  selectedDay.day === d.day 
-                    ? "bg-sky-500 text-slate-900 shadow-xl scale-105 -translate-y-1" 
-                    : "bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 hover:shadow-md"
-                )}
-              >
-                <span className="text-xs block opacity-70 uppercase tracking-widest italic mb-1">Day {d.day}</span>
-                {d.date}
-              </button>
-            ))}
-          </div>
-        </div>
+    <div className="space-y-6">
+      <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar">
+        <button
+          onClick={() => setSelectedDay('all')}
+          className={cn(
+            'flex-shrink-0 min-h-[44px] px-5 rounded-full text-sm font-black border-2 transition-colors',
+            selectedDay === 'all'
+              ? 'bg-camp-brown text-camp-card border-camp-brown'
+              : 'bg-camp-card text-camp-text border-camp-border hover:border-camp-brown'
+          )}
+        >
+          全部
+        </button>
+        {days.map((d) => (
+          <button
+            key={d.day}
+            onClick={() => setSelectedDay(d.day)}
+            className={cn(
+              'flex-shrink-0 min-h-[44px] px-5 rounded-full text-sm font-black border-2 transition-colors',
+              selectedDay === d.day
+                ? 'bg-camp-brown text-camp-card border-camp-brown'
+                : 'bg-camp-card text-camp-text border-camp-border hover:border-camp-brown'
+            )}
+          >
+            Day {d.day}
+          </button>
+        ))}
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={selectedDay.day}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-          className="space-y-8 relative"
-        >
-          {/* Vertical Timeline Line */}
-          <div className="absolute left-4 md:left-8 top-0 bottom-0 w-0.5 bg-slate-800 z-0" />
-
-          {selectedDay.deadline && (
-            <div className="ml-12 md:ml-20 p-5 bg-orange-900/20 border-l-8 border-orange-500 rounded-r-3xl animate-pulse-soft relative z-10">
-              <div className="flex items-center gap-2 mb-1">
-                <AlertCircle className="w-4 h-4 text-orange-400" />
-                <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest italic">🚨 重要物流 / 死線提醒</p>
-              </div>
-              <p className="text-base font-black text-white">{selectedDay.deadline}</p>
-            </div>
-          )}
-
-          {selectedDay.highlights && (
-            <div className="ml-12 md:ml-20 flex flex-wrap gap-2 relative z-10">
-              {selectedDay.highlights.split(',').map((tag, i) => (
-                <span key={i} className="px-3 py-1 bg-sky-900/30 text-sky-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-sky-800/50">
-                  # {tag.trim()}
-                </span>
+      <div className="space-y-8">
+        {visibleDays.map((day) => (
+          <div key={day.day} className="space-y-4">
+            <DayHeader day={day} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {day.items.map((item, idx) => (
+                <HighlightCard key={idx} day={day.day} item={item} idx={idx} />
               ))}
             </div>
-          )}
-
-          <div className="ml-12 md:ml-20 grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 relative z-10">
-            <div className="p-4 bg-amber-900/20 rounded-2xl border border-amber-800 flex items-center gap-3">
-              <Coffee className="w-5 h-5 text-amber-400" />
-              <div>
-                <p className="text-[10px] font-black text-amber-400 uppercase tracking-tighter">早餐計劃</p>
-                <p className="text-xs font-bold text-slate-300">{selectedDay.meals.b}</p>
-              </div>
-            </div>
-            <div className="p-4 bg-sky-900/20 rounded-2xl border border-sky-800 flex items-center gap-3">
-              <Utensils className="w-5 h-5 text-sky-400" />
-              <div>
-                <p className="text-[10px] font-black text-sky-400 uppercase tracking-tighter">午餐時間</p>
-                <p className="text-xs font-bold text-slate-300">{selectedDay.meals.l}</p>
-              </div>
-            </div>
-            <div className="p-4 bg-indigo-900/20 rounded-2xl border border-indigo-800 flex items-center gap-3 shadow-inner">
-              <Moon className="w-5 h-5 text-indigo-400" />
-              <div>
-                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">晚餐自理</p>
-                <p className="text-xs font-bold text-slate-300">{selectedDay.meals.d}</p>
-              </div>
-            </div>
           </div>
-
-          {selectedDay.items.map((item, idx) => (
-            <div key={idx} className="relative flex items-start gap-4 md:gap-8 group">
-              {/* Timeline Marker */}
-              <div className="flex flex-col items-center flex-shrink-0 w-8 md:w-16 pt-6">
-                <div className="w-10 h-10 rounded-2xl bg-slate-800 flex items-center justify-center border border-slate-700 shadow-md z-10 group-hover:scale-110 transition-transform">
-                  {item.icon && iconMap[item.icon] ? iconMap[item.icon] : <MapPin className="w-5 h-5 text-sky-500" />}
-                </div>
-                <span className="mt-2 text-[10px] md:text-xs font-black text-sky-400 font-mono bg-sky-900/30 px-1.5 py-0.5 rounded-md whitespace-nowrap">
-                  {item.time}
-                </span>
-              </div>
-
-              {/* Detail Card */}
-              <div className="flex-1 bg-slate-900/50 backdrop-blur-sm p-6 rounded-[2.5rem] shadow-sm border border-slate-800 flex flex-col md:flex-row gap-6 group hover:shadow-md transition-all duration-300 relative z-10">
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-4">
-                    <h4 className="font-black text-white text-xl tracking-tight group-hover:text-sky-400 transition-colors">
-                      {item.label}
-                    </h4>
-                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic hidden sm:block">Timeline View</span>
-                  </div>
-                  
-                  <p className="text-slate-400 text-sm font-medium leading-relaxed mb-6" dangerouslySetInnerHTML={{ __html: item.detail }} />
-                  
-                  <div className="space-y-4">
-                    <button 
-                      onClick={() => openGoogleMap(item.map)}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-800 text-slate-400 border border-transparent rounded-xl text-xs font-black transition-all shadow-sm hover:bg-sky-500 hover:text-slate-900"
-                    >
-                      <MapPin className="w-3 h-3" />
-                      點擊開啟導航
-                    </button>
-                    
-                    <CommentSection dayId={selectedDay.day} itemIdx={idx} />
-                  </div>
-                </div>
-
-                {/* Real Google Maps Embed Thumbnail */}
-                <div className="w-full md:w-72 aspect-video md:aspect-square bg-slate-800 rounded-3xl overflow-hidden border-4 border-slate-700 shadow-inner flex-shrink-0">
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    frameBorder="0"
-                    style={{ border: 0 }}
-                    src={`https://www.google.com/maps?q=${encodeURIComponent(item.map)}&output=embed&z=14`}
-                    allowFullScreen
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    className="grayscale-[0.5] contrast-[1.2] brightness-[0.8] invert-[0.9] hue-rotate-[180deg]"
-                  ></iframe>
-                </div>
-              </div>
-            </div>
-          ))}
-        </motion.div>
-      </AnimatePresence>
-
-    </motion.div>
+        ))}
+      </div>
+    </div>
   );
 }

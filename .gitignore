@@ -3,3 +3,4 @@ dist
 comments.db
 .env.local
 .env
+.photo-cache/

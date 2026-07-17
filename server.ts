@@ -2,10 +2,18 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
 import path from "path";
+import fs from "fs";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const PHOTO_CACHE_DIR = path.join(__dirname, ".photo-cache");
 
 const db = new Database("comments.db");
 
@@ -17,6 +25,14 @@ db.exec(`
     item_idx INTEGER NOT NULL,
     text TEXT NOT NULL,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS place_photos (
+    query TEXT PRIMARY KEY,
+    file TEXT,
+    updated DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
 
@@ -125,6 +141,55 @@ async function startServer() {
   app.delete("/api/expenses", (req, res) => {
     db.prepare("DELETE FROM expenses").run();
     res.json({ success: true });
+  });
+
+  app.get("/api/place-photo", async (req, res) => {
+    const query = typeof req.query.query === "string" ? req.query.query.trim() : "";
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!query || !apiKey) {
+      return res.status(404).end();
+    }
+
+    const hash = crypto.createHash("md5").update(query).digest("hex");
+    const filePath = path.join(PHOTO_CACHE_DIR, `${hash}.jpg`);
+
+    try {
+      const cached = db
+        .prepare("SELECT file FROM place_photos WHERE query = ?")
+        .get(query) as { file: string } | undefined;
+      if (cached && fs.existsSync(filePath)) {
+        res.setHeader("Content-Type", "image/jpeg");
+        res.setHeader("Cache-Control", "public, max-age=2592000");
+        return fs.createReadStream(filePath).pipe(res);
+      }
+
+      const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
+      const searchResp = await fetch(searchUrl);
+      const searchData = (await searchResp.json()) as any;
+      const ref = searchData?.results?.[0]?.photos?.[0]?.photo_reference;
+      if (!ref) {
+        return res.status(404).end();
+      }
+
+      const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${apiKey}`;
+      const photoResp = await fetch(photoUrl);
+      if (!photoResp.ok) {
+        return res.status(404).end();
+      }
+      const buffer = Buffer.from(await photoResp.arrayBuffer());
+
+      fs.mkdirSync(PHOTO_CACHE_DIR, { recursive: true });
+      fs.writeFileSync(filePath, buffer);
+      db.prepare(
+        "INSERT OR REPLACE INTO place_photos (query, file, updated) VALUES (?, ?, CURRENT_TIMESTAMP)"
+      ).run(query, filePath);
+
+      res.setHeader("Content-Type", photoResp.headers.get("content-type") || "image/jpeg");
+      res.setHeader("Cache-Control", "public, max-age=2592000");
+      return res.end(buffer);
+    } catch (err) {
+      return res.status(404).end();
+    }
   });
 
   // Vite middleware for development
