@@ -37,13 +37,16 @@ export default function Expenses() {
   const [showSettlement, setShowSettlement] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
 
-  const nameOf = (id: string) => families.find(f => f.id === id)?.name || id;
+  const nameOf = (name: string) => name;
 
   useEffect(() => {
-    if (families.length > 0) {
-      if (!payerFamily) setPayerFamily(families[0].id);
-      if (evenFamilies.length === 0) setEvenFamilies(families.map(f => f.id));
-    }
+    const ids = families.map(f => f.name);
+    if (ids.length === 0) return;
+    setPayerFamily(prev => (ids.includes(prev) ? prev : ids[0]));
+    setEvenFamilies(prev => {
+      const stillValid = prev.filter(id => ids.includes(id));
+      return prev.length > 0 && stillValid.length === prev.length ? prev : ids;
+    });
   }, [families]);
 
   const fetchExpenses = async () => {
@@ -73,7 +76,7 @@ export default function Expenses() {
   }, [mode, amountNzd, evenFamilies]);
 
   const customAllocated = useMemo(() => {
-    return families.reduce((sum, f) => sum + (parseFloat(customAmounts[f.id]) || 0), 0);
+    return families.reduce((sum, f) => sum + (parseFloat(customAmounts[f.name]) || 0), 0);
   }, [customAmounts, families]);
 
   const customRemaining = round2(amountNzd - customAllocated);
@@ -90,8 +93,8 @@ export default function Expenses() {
     }
     const splits: Record<string, number> = {};
     families.forEach(f => {
-      const v = parseFloat(customAmounts[f.id]) || 0;
-      if (v > 0) splits[f.id] = round2(v);
+      const v = parseFloat(customAmounts[f.name]) || 0;
+      if (v > 0) splits[f.name] = round2(v);
     });
     if (Object.keys(splits).length === 0) return null;
     return splits;
@@ -107,7 +110,7 @@ export default function Expenses() {
   const resetForm = () => {
     setAmount('');
     setDescription('');
-    setEvenFamilies(families.map(f => f.id));
+    setEvenFamilies(families.map(f => f.name));
     setCustomAmounts({});
   };
 
@@ -163,7 +166,7 @@ export default function Expenses() {
 
   const settlement = useMemo(() => {
     const net: Record<string, number> = {};
-    families.forEach(f => { net[f.id] = 0; });
+    families.forEach(f => { net[f.name] = 0; });
 
     for (const exp of expenses) {
       net[exp.payer_family] = (net[exp.payer_family] ?? 0) + exp.amount_nzd;
@@ -219,7 +222,7 @@ export default function Expenses() {
                 className="w-full min-h-[48px] bg-camp-bg border-2 border-camp-border rounded-2xl px-4 py-3 text-sm font-bold text-camp-brown focus:border-camp-brown focus:outline-none transition-all"
               >
                 {families.map(f => (
-                  <option key={f.id} value={f.id} className="bg-camp-card text-camp-text">{f.name}</option>
+                  <option key={f.name} value={f.name} className="bg-camp-card text-camp-text">{f.name}</option>
                 ))}
               </select>
             </div>
@@ -271,12 +274,12 @@ export default function Expenses() {
               <div>
                 <div className="flex flex-wrap gap-2">
                   {families.map(f => {
-                    const active = evenFamilies.includes(f.id);
+                    const active = evenFamilies.includes(f.name);
                     return (
                       <button
-                        key={f.id}
+                        key={f.name}
                         type="button"
-                        onClick={() => toggleEven(f.id)}
+                        onClick={() => toggleEven(f.name)}
                         className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-bold border-2 transition-all ${
                           active
                             ? 'bg-camp-green text-camp-card border-camp-green shadow-sm'
@@ -298,15 +301,15 @@ export default function Expenses() {
               <div>
                 <div className="space-y-2">
                   {families.map(f => (
-                    <div key={f.id} className="flex items-center gap-3">
+                    <div key={f.name} className="flex items-center gap-3">
                       <span className="flex-1 text-sm font-bold text-camp-text">{f.name}</span>
                       <input
                         type="number"
                         min="0"
                         step="0.01"
-                        value={customAmounts[f.id] ?? ''}
+                        value={customAmounts[f.name] ?? ''}
                         onChange={(e) =>
-                          setCustomAmounts(prev => ({ ...prev, [f.id]: e.target.value }))
+                          setCustomAmounts(prev => ({ ...prev, [f.name]: e.target.value }))
                         }
                         placeholder="0.00"
                         className="w-32 min-h-[44px] bg-camp-bg border-2 border-camp-border rounded-2xl px-4 py-2 text-sm font-bold text-camp-text placeholder:text-camp-muted focus:border-camp-brown focus:outline-none transition-all text-right"

@@ -77,12 +77,13 @@ export async function getAllData() {
       fetchCSV('1143344383')   // Detail daily
     ]);
 
+    const num = (v: unknown) => Number(String(v ?? '').replace(/[^0-9.-]/g, '')) || 0;
     const budget: BudgetData[] = budgetRaw.map(row => ({
-      id: String(row.id || row.ID),
-      name: String(row.name || row.Name),
-      car: Number(row.car || row.Car || 0),
-      hotel: Number(row.hotel || row.Hotel_Cost || 0),
-      total: Number(row.total || row.Total || 0)
+      id: String(row.id ?? row.ID ?? row[''] ?? row.name ?? row.Name ?? '').trim(),
+      name: String(row.name ?? row.Name ?? '').trim(),
+      car: num(row.car ?? row.Car),
+      hotel: num(row.hotel ?? row.Hotel_Cost ?? row.accomadation),
+      total: num(row.total ?? row.Total)
     }));
 
     const days: DayData[] = daysRaw.map(row => {
