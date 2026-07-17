@@ -20,6 +20,7 @@ export interface DayData {
   meals: { b: string; l: string; d: string };
   deadline?: string;
   highlights?: string;
+  mapPlace?: string;
   items: ItineraryItem[];
 }
 
@@ -96,6 +97,7 @@ export async function getAllData() {
         meals: { b: row.meal_b, l: row.meal_l, d: row.meal_d },
         deadline: row.alert,
         highlights: row.highlights,
+        mapPlace: row.map_place,
         items: itemsRaw
           .filter(item => item.day_id === row.day_id)
           .map(item => ({

@@ -69,6 +69,26 @@ date_range	name	address	checkin	room_note
 
 ---
 
+## 四、（選填）互動地圖：每日概要分頁的 `map_place` 欄
+
+互動地圖會自動從每天的**標題**判斷那天在地圖上的地點（例如標題含「庫克山」→ 對到 Mt Cook）。多數情況不用做任何事。
+
+只有在「自動判斷錯誤」或「標題看不出地點」時，才在「每日概要」分頁（Days）新增一欄 `map_place`，填固定地點代號指定：
+
+| 代號 | 地點 |
+|---|---|
+| `christchurch` | 基督城 |
+| `tekapo` | 蒂卡波 |
+| `mtcook` | 庫克山 |
+| `queenstown` | 皇后鎮 |
+| `teanau` | 蒂阿瑙 |
+| `milford` | 米爾福德 |
+| `oamaru` | 奧瑪魯 |
+
+> 互動地圖的手繪底圖與 Isa 角色圖，之後分別放到 `public/map.png`、`public/isa.png` 就會自動蓋上程式繪製的暫代圖。
+
+---
+
 ## 怎麼找每個分頁的 gid（分頁編號）
 
 程式是用 gid 抓每個分頁的資料。找法：
