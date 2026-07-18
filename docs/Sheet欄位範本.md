@@ -8,18 +8,63 @@
 
 ---
 
-## 一、既有「行程明細」分頁 — 新增 3 個欄位
+## 現況對照（2026-07-19 實際比對）
 
-這個分頁（目前欄位：`day_id, time, activity, desc, location, icon`）就是「景點 × 活動」亮點卡片的資料來源。請在**最後面新增這 3 欄**：
+程式讀什麼 vs Sheet 現在有什麼。**這一節是待辦清單，做完可以刪。**
+
+### 行程明細（Detail daily，gid `1143344383`）
+
+| 程式讀的欄位 | Sheet 現況 | 要做什麼 |
+|---|---|---|
+| `day_id` `time` `activity` `desc` `location` `icon` | ✅ 都有 | — |
+| `menu_url` | ❌ 沒有 | 想要「餐廳菜單連結」功能就新增此欄 |
+| `food_rec` | ❌ 沒有 | 想要「熱推餐飲」功能就新增此欄 |
+| （不讀）| Sheet 有 `link`、`早`、`中` | 程式不會讀，留著無妨 |
+
+**缺資料**：D2、D3 一列都沒有，這兩天的亮點卡片會是空的。
+
+### 每日概要（Days，gid `1603960862`）
+
+| 程式讀的欄位 | Sheet 現況 | 要做什麼 |
+|---|---|---|
+| `day_id` `date` `title` `hotel` `alert` `meal_b` `meal_l` `meal_d` | ✅ 都有 | — |
+| `highlights` | ⚠️ D2、D3、D7、D8 空白 | 想在每日摘要看到內容就補 |
+| `map_place` | ❌ 沒有（選填） | 目前 7 個地點靠標題自動判斷都正確，**可以不加** |
+
+**要刪的資料**：最後一列 `D11 / 8/1 / 測試` 是測試資料，會讓網站多出一個 Day 11。
+
+### 分帳（budget，gid `0`）
+
+| 程式讀的欄位 | Sheet 現況 | 要做什麼 |
+|---|---|---|
+| `name` `car` `total` | ✅ 都有 | — |
+| `hotel` | ✅ 對到 `accomadation` 欄 | 程式已容錯，不用改 |
+| `id` | ⚠️ 第一欄標題是空白的 | 程式已容錯不會壞，建議還是填上 `id` |
+| （不讀）| `HC`、`car booking`、`accomadation booking`、`remark` | 程式不會讀，留著無妨 |
+
+### 人員班機
+
+**目前寫死在 `googleSheetService.ts` 裡，不讀 Sheet。** 且與分帳名單不一致：分帳有 `HOWARD`、`JAMES`，但班機區塊寫的是「Cathy 家」且完全沒有 James。使用者決定**先不處理**（2026-07-19）。日後要修有兩條路：新增「班機」分頁改成讀 Sheet，或直接改程式裡的常數。
+
+### 輪值 / 住宿
+
+兩個分頁都還沒建立，`googleSheetService.ts` 的 `DUTY_GID`／`LODGING_GID` 是空字串，網站目前顯示備援假資料。範本見下方第二、三節。
+
+---
+
+## 一、既有「行程明細」分頁 — 可新增 2 個欄位
+
+這個分頁（目前欄位：`day_id, time, activity, desc, location, icon, link, 早, 中`）就是「景點 × 活動」亮點卡片的資料來源。若要啟用菜單與美食推薦功能，請在**最後面新增這 2 欄**：
 
 | 英文欄位名 | 中文說明 | 必填？ |
 |---|---|---|
-| `photo_url` | 景點照片網址（備援用；平常程式會自動抓 Google 地圖照片，這欄有填就優先用） | 選填 |
 | `menu_url` | 餐廳菜單連結（這個行程若含用餐才填） | 選填 |
 | `food_rec` | 熱推餐飲（例如「Fergburger 漢堡、藍鱈魚」） | 選填 |
 
 **填寫範例（一列）：**
-`day_id=D1, time=13:25, activity=基督城機場, desc=領取 Hiace 車隊, location=Christchurch Airport, icon=Plane, photo_url=(留空), menu_url=(留空), food_rec=(留空)`
+`day_id=D1, time=13:25, activity=基督城機場, desc=領取 Hiace 車隊, location=Christchurch Airport, icon=Plane, menu_url=(留空), food_rec=(留空)`
+
+> **關於景點照片**：程式一律自動抓 Google 地圖照片，不支援自訂圖片網址（`photo_url` 欄已於 2026-07-19 移除）。照片抓得準不準取決於 `location` 欄——填**景點名稱**（如 `Fairlie Playground`）會有照片，填**門牌地址**（如 `39 Meadow Street...`）通常抓不到，會顯示米色佔位圖。`location` 欄同時也是「開啟導航」按鈕的目標，填景點名稱對兩邊都好。
 
 ---
 
