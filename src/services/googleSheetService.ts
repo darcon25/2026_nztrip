@@ -7,7 +7,6 @@ export interface ItineraryItem {
   detail: string;
   map: string;
   icon?: string;
-  photoUrl?: string;
   menuUrl?: string;
   foodRec?: string;
 }
@@ -107,7 +106,6 @@ export async function getAllData() {
             detail: item.desc,
             map: item.location,
             icon: item.icon,
-            photoUrl: item.photo_url,
             menuUrl: item.menu_url,
             foodRec: item.food_rec
           }))

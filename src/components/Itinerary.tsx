@@ -45,7 +45,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
   const [showComments, setShowComments] = useState(false);
 
   const target = item.map || item.label;
-  const photoSrc = item.photoUrl || `/api/place-photo?query=${encodeURIComponent(target)}`;
+  const photoSrc = `/api/place-photo?query=${encodeURIComponent(target)}`;
 
   return (
     <motion.div
