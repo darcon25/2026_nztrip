@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Map as MapIcon, MapPin, Tent, Compass } from 'lucide-react';
 import { useData } from '../DataContext';
@@ -58,9 +58,13 @@ function scrollToHighlights() {
   document.getElementById('highlights')?.scrollIntoView({ behavior: 'smooth' });
 }
 
-export default function AdventureMap() {
+type AdventureMapProps = {
+  selectedDay: number | null;
+  onSelectDay: (day: number | null) => void;
+};
+
+export default function AdventureMap({ selectedDay, onSelectDay }: AdventureMapProps) {
   const { days } = useData();
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [isaLoaded, setIsaLoaded] = useState(true);
 
   const sortedDays = useMemo(() => [...days].sort((a, b) => a.day - b.day), [days]);
@@ -116,7 +120,7 @@ export default function AdventureMap() {
       {/* Day 篩選 chips（依 Sheet 的天數產生） */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-4">
         <button
-          onClick={() => setSelectedDay(null)}
+          onClick={() => onSelectDay(null)}
           className={`shrink-0 min-h-[44px] px-4 rounded-full text-sm font-black border transition-colors ${
             selectedDay === null
               ? 'bg-camp-brown text-camp-card border-camp-brown'
@@ -128,7 +132,7 @@ export default function AdventureMap() {
         {sortedDays.map((d) => (
           <button
             key={d.day}
-            onClick={() => setSelectedDay(d.day)}
+            onClick={() => { onSelectDay(d.day); scrollToHighlights(); }}
             className={`shrink-0 min-h-[44px] px-4 rounded-full text-sm font-black border transition-colors ${
               selectedDay === d.day
                 ? 'bg-camp-brown text-camp-card border-camp-brown'

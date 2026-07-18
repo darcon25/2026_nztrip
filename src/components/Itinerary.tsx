@@ -170,20 +170,24 @@ function DayHeader({ day }: { day: DayData }) {
   );
 }
 
-export default function Itinerary() {
-  const { days } = useData();
-  const [selectedDay, setSelectedDay] = useState<number | 'all'>('all');
+type ItineraryProps = {
+  selectedDay: number | null;
+  onSelectDay: (day: number | null) => void;
+};
 
-  const visibleDays = selectedDay === 'all' ? days : days.filter((d) => d.day === selectedDay);
+export default function Itinerary({ selectedDay, onSelectDay }: ItineraryProps) {
+  const { days } = useData();
+
+  const visibleDays = selectedDay === null ? days : days.filter((d) => d.day === selectedDay);
 
   return (
     <div className="space-y-6">
       <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar">
         <button
-          onClick={() => setSelectedDay('all')}
+          onClick={() => onSelectDay(null)}
           className={cn(
             'flex-shrink-0 min-h-[44px] px-5 rounded-full text-sm font-black border-2 transition-colors',
-            selectedDay === 'all'
+            selectedDay === null
               ? 'bg-camp-brown text-camp-card border-camp-brown'
               : 'bg-camp-card text-camp-text border-camp-border hover:border-camp-brown'
           )}
@@ -193,7 +197,7 @@ export default function Itinerary() {
         {days.map((d) => (
           <button
             key={d.day}
-            onClick={() => setSelectedDay(d.day)}
+            onClick={() => onSelectDay(d.day)}
             className={cn(
               'flex-shrink-0 min-h-[44px] px-5 rounded-full text-sm font-black border-2 transition-colors',
               selectedDay === d.day

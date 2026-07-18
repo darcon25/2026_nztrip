@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Users, Map, Sparkles, UtensilsCrossed, Home, Wallet } from 'lucide-react';
 import Overview from './components/Overview';
 import Budget from './components/Budget';
@@ -74,6 +74,8 @@ function Section({ id, title, children }: { id: string; title?: string; children
 }
 
 export default function App() {
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+
   return (
     <DataProvider>
       <div className="min-h-screen">
@@ -98,7 +100,7 @@ export default function App() {
 
         <main className="max-w-6xl mx-auto px-4 py-8 space-y-12">
           <Section id="map">
-            <AdventureMap />
+            <AdventureMap selectedDay={selectedDay} onSelectDay={setSelectedDay} />
           </Section>
 
           <Section id="summary" title="每日行程摘要">
@@ -106,7 +108,7 @@ export default function App() {
           </Section>
 
           <Section id="highlights" title="景點 × 活動">
-            <Itinerary />
+            <Itinerary selectedDay={selectedDay} onSelectDay={setSelectedDay} />
           </Section>
 
           <Section id="flights" title="人員班機">
