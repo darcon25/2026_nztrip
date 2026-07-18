@@ -7,6 +7,7 @@ import Itinerary from './components/Itinerary';
 import Duty from './components/Duty';
 import Lodging from './components/Lodging';
 import AdventureMap from './components/AdventureMap';
+import DailySummary from './components/DailySummary';
 
 import { DataProvider } from './DataContext';
 
@@ -98,6 +99,10 @@ export default function App() {
         <main className="max-w-6xl mx-auto px-4 py-8 space-y-12">
           <Section id="map">
             <AdventureMap />
+          </Section>
+
+          <Section id="summary" title="每日行程摘要">
+            <DailySummary />
           </Section>
 
           <Section id="highlights" title="景點 × 活動">
