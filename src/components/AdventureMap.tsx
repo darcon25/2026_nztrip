@@ -13,16 +13,17 @@ type Place = {
   my: number; // viewBox Y (0-125)
 };
 
-// 固定地點：座標對應南島大致地理方位（viewBox 100 x 125，北方朝上）
+// 固定地點：座標已對齊手繪底圖 public/map.png 的地形（viewBox 100 x 125，北方朝上）
+// 換底圖的話這 7 組座標要重新校正；下面的 islandPath 只是底圖載入失敗時的備援輪廓。
 // 「哪天去哪」由 Google Sheet 決定，這裡只定義地點與位置。
 const PLACES: Place[] = [
-  { id: 'christchurch', name: '基督城', en: 'Christchurch', aliases: ['基督城', 'Christchurch', 'Chch', 'CHC'], mx: 75, my: 46 },
-  { id: 'tekapo', name: '蒂卡波', en: 'Lake Tekapo', aliases: ['蒂卡波', '蒂咖波', 'Tekapo'], mx: 57, my: 58 },
-  { id: 'mtcook', name: '庫克山', en: 'Mt Cook', aliases: ['庫克山', 'Mt Cook', 'Cook', 'Pukaki', 'Tasman'], mx: 47, my: 63 },
-  { id: 'oamaru', name: '奧瑪魯', en: 'Oamaru', aliases: ['奧瑪魯', '奧馬魯', 'Oamaru', 'Omaru', 'Moeraki'], mx: 70, my: 72 },
-  { id: 'queenstown', name: '皇后鎮', en: 'Queenstown', aliases: ['皇后鎮', 'Queenstown', 'Skyline', 'Fergburger'], mx: 36, my: 80 },
-  { id: 'teanau', name: '蒂阿瑙', en: 'Te Anau', aliases: ['蒂阿瑙', 'Te Anau', '螢火蟲', 'Glowworm'], mx: 26, my: 89 },
-  { id: 'milford', name: '米爾福德', en: 'Milford Sound', aliases: ['米爾福德', 'Milford', '峽灣'], mx: 15, my: 79 },
+  { id: 'christchurch', name: '基督城', en: 'Christchurch', aliases: ['基督城', 'Christchurch', 'Chch', 'CHC'], mx: 65, my: 58.8 },
+  { id: 'tekapo', name: '蒂卡波', en: 'Lake Tekapo', aliases: ['蒂卡波', '蒂咖波', 'Tekapo'], mx: 52, my: 66.3 },
+  { id: 'mtcook', name: '庫克山', en: 'Mt Cook', aliases: ['庫克山', 'Mt Cook', 'Cook', 'Pukaki', 'Tasman'], mx: 47.5, my: 57.5 },
+  { id: 'oamaru', name: '奧瑪魯', en: 'Oamaru', aliases: ['奧瑪魯', '奧馬魯', 'Oamaru', 'Omaru', 'Moeraki'], mx: 57, my: 76.3 },
+  { id: 'queenstown', name: '皇后鎮', en: 'Queenstown', aliases: ['皇后鎮', 'Queenstown', 'Skyline', 'Fergburger'], mx: 30, my: 81.3 },
+  { id: 'teanau', name: '蒂阿瑙', en: 'Te Anau', aliases: ['蒂阿瑙', 'Te Anau', '螢火蟲', 'Glowworm'], mx: 23, my: 87.5 },
+  { id: 'milford', name: '米爾福德', en: 'Milford Sound', aliases: ['米爾福德', 'Milford', '峽灣'], mx: 17.5, my: 78.8 },
 ];
 
 // 簡化南島輪廓（viewBox 0 0 100 125，北方朝上）
@@ -60,6 +61,7 @@ function scrollToHighlights() {
 export default function AdventureMap() {
   const { days } = useData();
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [isaLoaded, setIsaLoaded] = useState(true);
 
   const sortedDays = useMemo(() => [...days].sort((a, b) => a.day - b.day), [days]);
 
@@ -174,7 +176,7 @@ export default function AdventureMap() {
         {/* 路線（依 Sheet 每天順序） */}
         {routeD && (
           <svg viewBox="0 0 100 125" className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid meet">
-            <path d={routeD} fill="none" stroke="#A9682F" strokeWidth="1.4" strokeDasharray="3 3" strokeLinecap="round" opacity="0.7" />
+            <path d={routeD} fill="none" stroke="#8A5222" strokeWidth="0.7" strokeDasharray="1.6 2.2" strokeLinecap="round" opacity="0.85" />
           </svg>
         )}
 
@@ -222,16 +224,18 @@ export default function AdventureMap() {
           className="absolute -translate-x-1/2 z-30 pointer-events-none"
         >
           <div className="relative flex flex-col items-center -translate-y-full pb-1">
-            <div className="relative w-11 h-11">
-              <div className="absolute inset-0 flex items-center justify-center bg-camp-accent rounded-full border-2 border-camp-card shadow-lg">
-                <Tent className="w-5 h-5 text-camp-card" />
-              </div>
-              {/* 把 Isa 去背 PNG 放到 public/isa.png 會自動蓋上 */}
+            <div className="relative w-14 h-14">
+              {/* isa.png 載入失敗才顯示的露營風暫代圖示 */}
+              {!isaLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-camp-accent rounded-full border-2 border-camp-card shadow-lg">
+                  <Tent className="w-5 h-5 text-camp-card" />
+                </div>
+              )}
               <img
                 src="/isa.png"
                 alt="Isa"
                 className="absolute inset-0 w-full h-full object-contain drop-shadow-lg"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                onError={() => setIsaLoaded(false)}
               />
             </div>
             <MapPin className="w-4 h-4 text-camp-accent -mt-0.5" fill="#C88A3C" />
