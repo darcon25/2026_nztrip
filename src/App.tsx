@@ -34,6 +34,33 @@ function Placeholder({ title, icon: Icon }: { title: string; icon: React.Element
   );
 }
 
+function SiteHeader() {
+  return (
+    <header className="bg-[#2E1B0E] px-3 py-3 sm:px-5 sm:py-4">
+      <div className="max-w-4xl mx-auto rounded-lg bg-gradient-to-b from-[#F6F0E1] to-[#E7DCC2] border border-[#C9B896]">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 px-4 py-4 sm:py-5">
+          <p className="order-2 sm:order-1 text-2xl sm:text-3xl font-black leading-tight text-center text-[#3A2415] tracking-tight">
+            EX LCFC<br className="hidden sm:block" />
+            <span className="sm:hidden"> · </span>露營小隊
+          </p>
+
+          <img
+            src="/badge.png"
+            alt="EX-LCFC Outdoor Camping &amp; Drinking Squad 徽章"
+            className="order-1 sm:order-2 w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-full drop-shadow-sm"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+
+          <p className="order-3 text-center leading-tight text-[#3A2415]">
+            <span className="block text-sm sm:text-base font-bold text-camp-brown">2026</span>
+            <span className="block text-2xl sm:text-3xl font-black tracking-tight">勇闖南半球</span>
+          </p>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <section id={id} className="scroll-mt-24">
@@ -47,12 +74,7 @@ export default function App() {
   return (
     <DataProvider>
       <div className="min-h-screen">
-        <img
-          src="/banner.png"
-          alt="2026 南島家族旅遊 橫幅"
-          className="w-full max-h-[280px] object-cover"
-          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-        />
+        <SiteHeader />
 
         <nav className="sticky top-0 z-50 glass-effect border-b border-camp-border">
           <div className="max-w-6xl mx-auto px-2">
