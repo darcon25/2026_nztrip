@@ -90,6 +90,16 @@ export default function AdventureMap({ selectedDay, onSelectDay }: AdventureMapP
     return list.length > 0 ? list : PLACES;
   }, [sortedDays, dayPlace]);
 
+  // 一個地點可能涵蓋多天（例如皇后鎮 Day 5-8），點標記時篩到最早的那天
+  const placeFirstDay = useMemo(() => {
+    const m = new Map<string, number>();
+    sortedDays.forEach(d => {
+      const p = dayPlace.get(d.day);
+      if (p && !m.has(p.id)) m.set(p.id, d.day);
+    });
+    return m;
+  }, [sortedDays, dayPlace]);
+
   // 路線：依每天順序串起地點（去掉連續重複）
   const routeD = useMemo(() => {
     const seq: Place[] = [];
@@ -188,7 +198,11 @@ export default function AdventureMap({ selectedDay, onSelectDay }: AdventureMapP
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.15 + idx * 0.05, type: 'spring', stiffness: 220, damping: 18 }}
-              onClick={scrollToHighlights}
+              onClick={() => {
+                const firstDay = placeFirstDay.get(p.id);
+                if (firstDay != null) onSelectDay(firstDay);
+                scrollToHighlights();
+              }}
               style={{ left: `${p.mx}%`, top: `${toTop(p.my)}%` }}
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center min-w-[44px] min-h-[44px] justify-center group"
               aria-label={p.name}
