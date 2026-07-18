@@ -61,10 +61,12 @@ function SiteHeader() {
   );
 }
 
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+function Section({ id, title, children }: { id: string; title?: string; children: React.ReactNode }) {
   return (
     <section id={id} className="scroll-mt-24">
-      <h2 className="text-xl md:text-2xl font-black text-camp-text mb-4 tracking-tight px-1">{title}</h2>
+      {title && (
+        <h2 className="text-xl md:text-2xl font-black text-camp-text mb-4 tracking-tight px-1">{title}</h2>
+      )}
       {children}
     </section>
   );
@@ -94,7 +96,7 @@ export default function App() {
         </nav>
 
         <main className="max-w-6xl mx-auto px-4 py-8 space-y-12">
-          <Section id="map" title="互動地圖">
+          <Section id="map">
             <AdventureMap />
           </Section>
 

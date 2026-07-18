@@ -103,15 +103,10 @@ export default function AdventureMap() {
   return (
     <div className="bg-camp-card p-4 md:p-8 rounded-[2.5rem] shadow-sm border border-camp-border overflow-hidden">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div>
-          <h3 className="text-2xl font-black text-camp-text tracking-tight flex items-center gap-2">
-            <MapIcon className="w-6 h-6 text-camp-brown" />
-            互動地圖
-          </h3>
-          <p className="text-camp-muted text-sm font-medium mt-1">
-            點日期看 Isa 走到哪一站，點站點跳到亮點卡片
-          </p>
-        </div>
+        <p className="text-camp-muted text-sm font-medium flex items-center gap-2">
+          <MapIcon className="w-5 h-5 text-camp-brown shrink-0" />
+          點日期看 Isa 走到哪一站，點站點跳到亮點卡片
+        </p>
         <div className="hidden sm:flex items-center gap-2 bg-camp-green/15 border border-camp-green/30 px-4 py-1.5 rounded-full text-xs font-black text-camp-green uppercase tracking-widest">
           <Compass className="w-4 h-4" />
           South Island
