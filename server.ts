@@ -163,15 +163,23 @@ async function startServer() {
         return fs.createReadStream(filePath).pipe(res);
       }
 
-      const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${apiKey}`;
-      const searchResp = await fetch(searchUrl);
+      // Places API (New)：2025-03 起新專案無法啟用舊版 Places API，故用 v1 端點
+      const searchResp = await fetch("https://places.googleapis.com/v1/places:searchText", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": apiKey,
+          "X-Goog-FieldMask": "places.photos",
+        },
+        body: JSON.stringify({ textQuery: query, maxResultCount: 1 }),
+      });
       const searchData = (await searchResp.json()) as any;
-      const ref = searchData?.results?.[0]?.photos?.[0]?.photo_reference;
+      const ref = searchData?.places?.[0]?.photos?.[0]?.name;
       if (!ref) {
         return res.status(404).end();
       }
 
-      const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${apiKey}`;
+      const photoUrl = `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=800&key=${apiKey}`;
       const photoResp = await fetch(photoUrl);
       if (!photoResp.ok) {
         return res.status(404).end();
