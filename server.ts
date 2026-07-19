@@ -12,6 +12,28 @@ import sharp from "sharp";
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
+async function syncPhotoToN8n(photoId: number, storedFilePath: string, originalName: string, mimeType: string) {
+  const webhookUrl = process.env.N8N_PHOTO_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  try {
+    const fileBuffer = fs.readFileSync(storedFilePath);
+    const form = new FormData();
+    form.append("file", new Blob([fileBuffer], { type: mimeType }), originalName);
+
+    const headers: Record<string, string> = {};
+    const token = process.env.N8N_PHOTO_WEBHOOK_TOKEN;
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const resp = await fetch(webhookUrl, { method: "POST", body: form, headers });
+    if (!resp.ok) throw new Error(`n8n webhook responded ${resp.status}`);
+
+    db.prepare("UPDATE photos SET synced_at = CURRENT_TIMESTAMP WHERE id = ?").run(photoId);
+  } catch (err) {
+    console.error(`Failed to sync photo ${photoId} to n8n:`, err);
+  }
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -344,6 +366,8 @@ async function startServer() {
           "INSERT INTO photos (original_name, stored_file, display_file, thumb_file, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?, ?)"
         );
         const info = stmt.run(file.originalname, file.filename, displayFile, thumbFile, file.mimetype, file.size);
+        const photoId = Number(info.lastInsertRowid);
+        syncPhotoToN8n(photoId, file.path, file.originalname, file.mimetype);
         created.push({
           id: info.lastInsertRowid,
           original_name: file.originalname,
