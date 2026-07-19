@@ -6,6 +6,8 @@ import fs from "fs";
 import crypto from "crypto";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import multer from "multer";
+import sharp from "sharp";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -14,6 +16,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PHOTO_CACHE_DIR = path.join(__dirname, ".photo-cache");
+
+const UPLOAD_DIR = path.join(__dirname, ".uploads");
+const UPLOAD_ORIGINALS_DIR = path.join(UPLOAD_DIR, "originals");
+const UPLOAD_DISPLAY_DIR = path.join(UPLOAD_DIR, "display");
+const UPLOAD_THUMBS_DIR = path.join(UPLOAD_DIR, "thumbs");
+for (const dir of [UPLOAD_ORIGINALS_DIR, UPLOAD_DISPLAY_DIR, UPLOAD_THUMBS_DIR]) {
+  fs.mkdirSync(dir, { recursive: true });
+}
 
 const db = new Database("comments.db");
 
@@ -47,6 +57,81 @@ db.exec(`
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    original_name TEXT NOT NULL,
+    stored_file TEXT NOT NULL,
+    display_file TEXT,
+    thumb_file TEXT,
+    mime_type TEXT NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    synced_at DATETIME,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+const ALLOWED_PHOTO_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"];
+
+function isHeic(mimeType: string, filename: string) {
+  const ext = path.extname(filename).toLowerCase();
+  return mimeType === "image/heic" || mimeType === "image/heif" || ext === ".heic" || ext === ".heif";
+}
+
+const photoUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, UPLOAD_ORIGINALS_DIR),
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, `${crypto.randomUUID()}${ext}`);
+    },
+  }),
+  limits: { fileSize: 25 * 1024 * 1024, files: 20 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const okMime = file.mimetype.startsWith("image/");
+    const okExt = ALLOWED_PHOTO_EXTENSIONS.includes(ext);
+    if (okMime || okExt) return cb(null, true);
+    cb(new Error("Only image files are allowed"));
+  },
+});
+
+async function generateDerivatives(
+  originalPath: string,
+  mimeType: string,
+  originalName: string
+): Promise<{ displayFile: string | null; thumbFile: string | null }> {
+  try {
+    let sourceBuffer: Buffer;
+    if (isHeic(mimeType, originalName)) {
+      const { default: heicConvert } = (await import("heic-convert")) as any;
+      const inputBuffer = fs.readFileSync(originalPath);
+      sourceBuffer = await heicConvert({ buffer: inputBuffer, format: "JPEG", quality: 0.9 });
+    } else {
+      sourceBuffer = fs.readFileSync(originalPath);
+    }
+
+    const id = crypto.randomUUID();
+    const displayFile = `${id}-display.jpg`;
+    const thumbFile = `${id}-thumb.jpg`;
+
+    await sharp(sourceBuffer)
+      .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 82 })
+      .toFile(path.join(UPLOAD_DISPLAY_DIR, displayFile));
+
+    await sharp(sourceBuffer)
+      .resize(400, 400, { fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 70 })
+      .toFile(path.join(UPLOAD_THUMBS_DIR, thumbFile));
+
+    return { displayFile, thumbFile };
+  } catch (err) {
+    console.error("Failed to generate photo derivatives:", err);
+    return { displayFile: null, thumbFile: null };
+  }
+}
 
 async function startServer() {
   const app = express();
@@ -198,6 +283,115 @@ async function startServer() {
     } catch (err) {
       return res.status(404).end();
     }
+  });
+
+  app.get("/api/photos", (req, res) => {
+    const rows = db.prepare("SELECT * FROM photos ORDER BY timestamp DESC").all() as any[];
+    const photos = rows.map((row) => ({
+      id: row.id,
+      original_name: row.original_name,
+      mime_type: row.mime_type,
+      size_bytes: row.size_bytes,
+      has_thumb: !!row.thumb_file,
+      has_display: !!row.display_file,
+      synced_at: row.synced_at,
+      timestamp: row.timestamp,
+    }));
+    res.json(photos);
+  });
+
+  app.post("/api/photos", (req, res) => {
+    photoUpload.array("photos", 20)(req, res, async (err: any) => {
+      if (err) {
+        return res.status(400).json({ error: err.message || "Upload failed" });
+      }
+      const files = (req.files as Express.Multer.File[]) || [];
+      if (files.length === 0) {
+        return res.status(400).json({ error: "No files uploaded" });
+      }
+
+      const created = [];
+      for (const file of files) {
+        const { displayFile, thumbFile } = await generateDerivatives(file.path, file.mimetype, file.originalname);
+        const stmt = db.prepare(
+          "INSERT INTO photos (original_name, stored_file, display_file, thumb_file, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?, ?)"
+        );
+        const info = stmt.run(file.originalname, file.filename, displayFile, thumbFile, file.mimetype, file.size);
+        created.push({
+          id: info.lastInsertRowid,
+          original_name: file.originalname,
+          mime_type: file.mimetype,
+          size_bytes: file.size,
+          has_thumb: !!thumbFile,
+          has_display: !!displayFile,
+          synced_at: null,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      res.json(created);
+    });
+  });
+
+  app.get("/api/photos/:id/thumb", (req, res) => {
+    const row = db.prepare("SELECT thumb_file FROM photos WHERE id = ?").get(req.params.id) as
+      | { thumb_file: string | null }
+      | undefined;
+    if (!row || !row.thumb_file) return res.status(404).end();
+    const filePath = path.join(UPLOAD_THUMBS_DIR, row.thumb_file);
+    if (!fs.existsSync(filePath)) return res.status(404).end();
+    res.setHeader("Content-Type", "image/jpeg");
+    res.setHeader("Cache-Control", "public, max-age=2592000");
+    fs.createReadStream(filePath).pipe(res);
+  });
+
+  app.get("/api/photos/:id/display", (req, res) => {
+    const row = db.prepare("SELECT display_file FROM photos WHERE id = ?").get(req.params.id) as
+      | { display_file: string | null }
+      | undefined;
+    if (!row || !row.display_file) return res.status(404).end();
+    const filePath = path.join(UPLOAD_DISPLAY_DIR, row.display_file);
+    if (!fs.existsSync(filePath)) return res.status(404).end();
+    res.setHeader("Content-Type", "image/jpeg");
+    res.setHeader("Cache-Control", "public, max-age=2592000");
+    fs.createReadStream(filePath).pipe(res);
+  });
+
+  app.get("/api/photos/:id/file", (req, res) => {
+    const row = db.prepare("SELECT stored_file, original_name, mime_type FROM photos WHERE id = ?").get(
+      req.params.id
+    ) as { stored_file: string; original_name: string; mime_type: string } | undefined;
+    if (!row) return res.status(404).end();
+    const filePath = path.join(UPLOAD_ORIGINALS_DIR, row.stored_file);
+    if (!fs.existsSync(filePath)) return res.status(404).end();
+    res.setHeader("Content-Type", row.mime_type || "application/octet-stream");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename*=UTF-8''${encodeURIComponent(row.original_name)}`
+    );
+    fs.createReadStream(filePath).pipe(res);
+  });
+
+  app.delete("/api/photos/:id", (req, res) => {
+    const row = db.prepare("SELECT stored_file, display_file, thumb_file FROM photos WHERE id = ?").get(
+      req.params.id
+    ) as { stored_file: string; display_file: string | null; thumb_file: string | null } | undefined;
+    if (!row) return res.status(404).json({ error: "Not found" });
+
+    const targets: [string, string | null][] = [
+      [UPLOAD_ORIGINALS_DIR, row.stored_file],
+      [UPLOAD_DISPLAY_DIR, row.display_file],
+      [UPLOAD_THUMBS_DIR, row.thumb_file],
+    ];
+    for (const [dir, file] of targets) {
+      if (file) {
+        const p = path.join(dir, file);
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+      }
+    }
+
+    db.prepare("DELETE FROM photos WHERE id = ?").run(req.params.id);
+    res.json({ success: true });
   });
 
   // Vite middleware for development

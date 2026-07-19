@@ -4,3 +4,4 @@ comments.db
 .env.local
 .env
 .photo-cache/
+.uploads/
