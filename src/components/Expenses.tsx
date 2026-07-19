@@ -101,11 +101,12 @@ export default function Expenses() {
   };
 
   const customBalanced = mode === 'custom' && amountNzd > 0 && Math.abs(customRemaining) <= 0.01;
+  const splitReady = mode === 'even' ? evenFamilies.length > 0 : customBalanced;
   const canSubmit =
     !!payerFamily &&
     amountNzd > 0 &&
     !!description.trim() &&
-    (mode === 'even' ? evenFamilies.length > 0 : customBalanced);
+    splitReady;
 
   const resetForm = () => {
     setAmount('');
@@ -331,6 +332,12 @@ export default function Expenses() {
               </div>
             )}
           </div>
+
+          {amountNzd > 0 && splitReady && !description.trim() && (
+            <p className="text-xs font-bold text-red-600">
+              請填寫這筆消費是什麼，才能送出。
+            </p>
+          )}
 
           <button
             type="submit"
