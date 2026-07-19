@@ -377,6 +377,7 @@ async function startServer() {
           has_display: !!displayFile,
           synced_at: null,
           timestamp: new Date().toISOString(),
+          reactions: {},
         });
       }
 
