@@ -45,8 +45,8 @@ export default function PhotoGallery() {
     setIsUploading(true);
     try {
       const form = new FormData();
-      // as File：server.ts import Node 內建模組讓 @types/node 的全域 FormData/File 蓋過瀏覽器 DOM 版本，
-      // 型別檢查會誤判，實際執行時用的仍是瀏覽器原生 FormData。
+      // as File：專案沒裝 @types/react，import React 型別退化成 any，e.target.files 也連帶變 any；
+      // Array.from(any) 推斷出 unknown[] 而非 File[]，需明確斷言。實際執行時就是瀏覽器原生 File。
       Array.from(files).forEach((file) => form.append('photos', file as File));
       const res = await fetch('/api/photos', { method: 'POST', body: form });
       if (res.ok) {
