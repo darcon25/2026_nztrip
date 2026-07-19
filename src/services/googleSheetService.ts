@@ -38,10 +38,13 @@ export interface ArrivalData {
   color: string;
 }
 
-export interface DutyData {
-  date: string; dayId: string; cookFamily?: string;
-  breakfast?: string; lunch?: string; dinner?: string;
-  restaurant?: string; menuUrl?: string; foodRec?: string;
+export interface CookAssignment {
+  dayId: string;
+  date: string;
+  meal: string;
+  family: string;
+  dish?: string;
+  note?: string;
 }
 
 export interface LodgingData {
@@ -51,7 +54,7 @@ export interface LodgingData {
 
 const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTYDbyWoOERQKg5uBjh6MmVl2gPGVy7CAG9XV1VbjAi3DK-vNIOjn50RYek4c8dV9PBjNf9tohYGF8Y/pub';
 
-const DUTY_GID = '';
+const COOK_ASSIGNMENT_GID = '2142763341'; // 自煮分工
 const LODGING_GID = '';
 
 async function fetchCSV(gid: string) {
@@ -120,21 +123,17 @@ export async function getAllData() {
       { type: 'Final Arrival', time: '7/24 14:35', detail: 'Max 家 (2大1小)', color: 'bg-indigo-600' }
     ];
 
-    let duty: DutyData[] | undefined;
-    if (DUTY_GID) {
-      const dutyRaw = await fetchCSV(DUTY_GID);
-      duty = dutyRaw.map(row => ({
-        date: String(row.date),
+    const cookAssignmentsRaw = await fetchCSV(COOK_ASSIGNMENT_GID);
+    const cookAssignments: CookAssignment[] = cookAssignmentsRaw
+      .filter(row => row.day_id && row.family)
+      .map(row => ({
         dayId: String(row.day_id),
-        cookFamily: row.cook_family || undefined,
-        breakfast: row.breakfast || undefined,
-        lunch: row.lunch || undefined,
-        dinner: row.dinner || undefined,
-        restaurant: row.restaurant || undefined,
-        menuUrl: row.menu_url || undefined,
-        foodRec: row.food_rec || undefined
+        date: String(row.date ?? ''),
+        meal: String(row.meal ?? ''),
+        family: String(row.family),
+        dish: row.dish ? String(row.dish).trim() || undefined : undefined,
+        note: row.note ? String(row.note).trim() || undefined : undefined
       }));
-    }
 
     let lodging: LodgingData[] | undefined;
     if (LODGING_GID) {
@@ -148,7 +147,7 @@ export async function getAllData() {
       }));
     }
 
-    return { days, budget, arrivals, duty, lodging };
+    return { days, budget, arrivals, cookAssignments, lodging };
   } catch (error) {
     console.error('Error fetching Google Sheet data:', error);
     return null;

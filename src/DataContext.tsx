@@ -1,42 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getAllData, DayData, BudgetData, ArrivalData, DutyData, LodgingData } from './services/googleSheetService';
+import { getAllData, DayData, BudgetData, ArrivalData, CookAssignment, LodgingData } from './services/googleSheetService';
 import { days as fallbackDays, familyBudgets as fallbackBudget } from './constants';
 
 interface DataContextType {
   days: DayData[];
   budget: BudgetData[];
   arrivals: ArrivalData[];
-  duty: DutyData[];
+  cookAssignments: CookAssignment[];
   lodging: LodgingData[];
   loading: boolean;
   error: string | null;
 }
-
-const fallbackDuty: DutyData[] = [
-  {
-    date: '7/22', dayId: 'D1', cookFamily: 'Fenix 家',
-    breakfast: '機上早餐', lunch: '基督城機場輕食', dinner: '自煮 咖哩雞飯',
-    restaurant: 'New World 超市採買', foodRec: '紐西蘭羊排、奇異果'
-  },
-  {
-    date: '7/24', dayId: 'D3', cookFamily: 'Max 家',
-    breakfast: '住宿自備', lunch: 'Tekapo 湖邊三明治', dinner: '外食',
-    restaurant: 'Kohan 日本料理', menuUrl: 'https://www.kohantekapo.co.nz',
-    foodRec: '鮭魚丼飯、天婦羅'
-  },
-  {
-    date: '7/26', dayId: 'D5', cookFamily: 'Richard 家',
-    breakfast: '飯店', lunch: 'Fairlie 鮭魚派', dinner: '自煮 BBQ',
-    restaurant: 'Fairlie Bakehouse', menuUrl: 'https://www.fairliebakehouse.co.nz',
-    foodRec: '三文魚派、鹿肉派'
-  },
-  {
-    date: '7/28', dayId: 'D7',
-    breakfast: '自備', lunch: '皇后鎮湖畔野餐', dinner: '外食',
-    restaurant: 'Fergburger', menuUrl: 'https://fergburger.com',
-    foodRec: 'Fergburger 漢堡、藍鱈魚'
-  }
-];
 
 const fallbackLodging: LodgingData[] = [
   {
@@ -68,7 +42,7 @@ const fallbackLodging: LodgingData[] = [
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [data, setData] = useState<{ days: DayData[]; budget: BudgetData[]; arrivals: ArrivalData[]; duty: DutyData[]; lodging: LodgingData[] }>({
+  const [data, setData] = useState<{ days: DayData[]; budget: BudgetData[]; arrivals: ArrivalData[]; cookAssignments: CookAssignment[]; lodging: LodgingData[] }>({
     days: fallbackDays.map(d => ({ ...d, items: d.items.map(i => ({ ...i, day: d.day })) })),
     budget: fallbackBudget,
     arrivals: [
@@ -77,7 +51,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       { type: '3rd Arrival', time: '7/23 00:20', detail: 'Richard 家 (2大2小)', color: 'bg-sky-300' },
       { type: 'Final Arrival', time: '7/24 14:35', detail: 'Max 家 (2大1小)', color: 'bg-indigo-600' }
     ],
-    duty: fallbackDuty,
+    cookAssignments: [],
     lodging: fallbackLodging
   });
   const [loading, setLoading] = useState(true);
@@ -92,7 +66,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             days: result.days || prev.days,
             budget: result.budget || prev.budget,
             arrivals: result.arrivals || prev.arrivals,
-            duty: result.duty || prev.duty,
+            cookAssignments: result.cookAssignments || prev.cookAssignments,
             lodging: result.lodging || prev.lodging
           }));
         }
