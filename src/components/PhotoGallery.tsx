@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Images, Upload, Download, Trash2, Cloud, ImageOff } from 'lucide-react';
+import PhotoLightbox from './PhotoLightbox';
 
 export interface Photo {
   id: number;
@@ -14,6 +15,25 @@ export interface Photo {
   reactions: Record<string, number>;
 }
 
+const REACTIONS_STORAGE_KEY = 'nztrip.photoReactions';
+
+function loadMyReactions(): Record<number, string[]> {
+  try {
+    const raw = localStorage.getItem(REACTIONS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveMyReactions(data: Record<number, string[]>) {
+  try {
+    localStorage.setItem(REACTIONS_STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // localStorage 不可用（例如無痕模式關掉儲存）就不記，不影響按表情本身
+  }
+}
+
 function formatSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -23,6 +43,12 @@ export default function PhotoGallery() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [myReactionsMap, setMyReactionsMap] = useState<Record<number, string[]>>({});
+
+  useEffect(() => {
+    setMyReactionsMap(loadMyReactions());
+  }, []);
 
   const fetchPhotos = async () => {
     try {
@@ -73,6 +99,48 @@ export default function PhotoGallery() {
     }
   };
 
+  const handleReact = async (photoId: number, emoji: string) => {
+    const mine = myReactionsMap[photoId] ?? [];
+    const isRemoving = mine.includes(emoji);
+    const delta = isRemoving ? -1 : 1;
+
+    const nextMine = isRemoving ? mine.filter((e) => e !== emoji) : [...mine, emoji];
+    const nextMap = { ...myReactionsMap, [photoId]: nextMine };
+    setMyReactionsMap(nextMap);
+    saveMyReactions(nextMap);
+
+    setPhotos((prev) =>
+      prev.map((p) => {
+        if (p.id !== photoId) return p;
+        const nextCount = Math.max(0, (p.reactions[emoji] || 0) + delta);
+        const nextReactions = { ...p.reactions };
+        if (nextCount > 0) nextReactions[emoji] = nextCount;
+        else delete nextReactions[emoji];
+        return { ...p, reactions: nextReactions };
+      })
+    );
+
+    try {
+      const res = await fetch(`/api/photos/${photoId}/reactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emoji, delta }),
+      });
+      if (!res.ok) throw new Error('reaction request failed');
+      const { reactions } = await res.json();
+      setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, reactions } : p)));
+    } catch (error) {
+      console.error('Failed to update reaction:', error);
+      const revertMine = isRemoving ? [...mine] : mine.filter((e) => e !== emoji);
+      const revertMap = { ...myReactionsMap, [photoId]: revertMine };
+      setMyReactionsMap(revertMap);
+      saveMyReactions(revertMap);
+      fetchPhotos();
+    }
+  };
+
+  const lightboxPhoto = lightboxIndex !== null ? photos[lightboxIndex] : null;
+
   return (
     <div className="bg-camp-card p-6 md:p-8 rounded-[2.5rem] border border-camp-border shadow-sm">
       <div className="flex items-center gap-3 mb-6">
@@ -108,7 +176,7 @@ export default function PhotoGallery() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           <AnimatePresence initial={false}>
-            {photos.map((photo) => (
+            {photos.map((photo, idx) => (
               <motion.div
                 key={photo.id}
                 initial={{ opacity: 0, y: -10 }}
@@ -116,7 +184,11 @@ export default function PhotoGallery() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="rounded-2xl border border-camp-border overflow-hidden bg-camp-bg"
               >
-                <div className="relative aspect-square">
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex(idx)}
+                  className="relative aspect-square w-full block"
+                >
                   {photo.has_thumb ? (
                     <img
                       src={`/api/photos/${photo.id}/thumb`}
@@ -146,7 +218,7 @@ export default function PhotoGallery() {
                       ))}
                     </div>
                   )}
-                </div>
+                </button>
 
                 <p className="px-2 pt-1.5 text-[10px] text-camp-muted font-bold truncate">
                   {photo.original_name} · {formatSize(photo.size_bytes)}
@@ -172,6 +244,15 @@ export default function PhotoGallery() {
           </AnimatePresence>
         </div>
       )}
+
+      <PhotoLightbox
+        photos={photos}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onNavigate={setLightboxIndex}
+        myReactions={lightboxPhoto ? myReactionsMap[lightboxPhoto.id] ?? [] : []}
+        onReact={handleReact}
+      />
     </div>
   );
 }
