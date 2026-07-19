@@ -72,6 +72,17 @@ db.exec(`
   )
 `);
 
+const REACTION_EMOJIS = ["❤️", "😂", "😍", "👍", "🔥", "🥹"];
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS photo_reactions (
+    photo_id INTEGER NOT NULL,
+    emoji TEXT NOT NULL,
+    count INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (photo_id, emoji)
+  )
+`);
+
 const ALLOWED_PHOTO_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"];
 
 function isHeic(mimeType: string, filename: string) {
@@ -131,6 +142,20 @@ async function generateDerivatives(
     console.error("Failed to generate photo derivatives:", err);
     return { displayFile: null, thumbFile: null };
   }
+}
+
+function reactionsByPhotoId(photoIds: number[]): Record<number, Record<string, number>> {
+  if (photoIds.length === 0) return {};
+  const placeholders = photoIds.map(() => "?").join(",");
+  const rows = db
+    .prepare(`SELECT photo_id, emoji, count FROM photo_reactions WHERE photo_id IN (${placeholders}) AND count > 0`)
+    .all(...photoIds) as { photo_id: number; emoji: string; count: number }[];
+  const grouped: Record<number, Record<string, number>> = {};
+  for (const row of rows) {
+    if (!grouped[row.photo_id]) grouped[row.photo_id] = {};
+    grouped[row.photo_id][row.emoji] = row.count;
+  }
+  return grouped;
 }
 
 async function startServer() {
@@ -287,6 +312,7 @@ async function startServer() {
 
   app.get("/api/photos", (req, res) => {
     const rows = db.prepare("SELECT * FROM photos ORDER BY timestamp DESC").all() as any[];
+    const reactionsMap = reactionsByPhotoId(rows.map((r) => r.id));
     const photos = rows.map((row) => ({
       id: row.id,
       original_name: row.original_name,
@@ -296,6 +322,7 @@ async function startServer() {
       has_display: !!row.display_file,
       synced_at: row.synced_at,
       timestamp: row.timestamp,
+      reactions: reactionsMap[row.id] || {},
     }));
     res.json(photos);
   });
@@ -390,8 +417,30 @@ async function startServer() {
       }
     }
 
+    db.prepare("DELETE FROM photo_reactions WHERE photo_id = ?").run(req.params.id);
     db.prepare("DELETE FROM photos WHERE id = ?").run(req.params.id);
     res.json({ success: true });
+  });
+
+  app.post("/api/photos/:id/reactions", (req, res) => {
+    const { emoji, delta } = req.body;
+    if (!REACTION_EMOJIS.includes(emoji)) {
+      return res.status(400).json({ error: "Unknown emoji" });
+    }
+    if (delta !== 1 && delta !== -1) {
+      return res.status(400).json({ error: "delta must be 1 or -1" });
+    }
+    const photo = db.prepare("SELECT id FROM photos WHERE id = ?").get(req.params.id);
+    if (!photo) return res.status(404).json({ error: "Photo not found" });
+
+    db.prepare(
+      `INSERT INTO photo_reactions (photo_id, emoji, count) VALUES (?, ?, MAX(0, ?))
+       ON CONFLICT(photo_id, emoji) DO UPDATE SET count = MAX(0, count + ?)`
+    ).run(req.params.id, emoji, delta, delta);
+
+    const photoId = Number(req.params.id);
+    const reactions = reactionsByPhotoId([photoId])[photoId] || {};
+    res.json({ reactions });
   });
 
   // Vite middleware for development
