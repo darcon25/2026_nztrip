@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Map, Sparkles, UtensilsCrossed, Home, Wallet } from 'lucide-react';
+import { Users, Map, Sparkles, UtensilsCrossed, Home, Wallet, Images } from 'lucide-react';
 import Overview from './components/Overview';
 import Budget from './components/Budget';
 import Expenses from './components/Expenses';
@@ -8,6 +8,7 @@ import Duty from './components/Duty';
 import Lodging from './components/Lodging';
 import AdventureMap from './components/AdventureMap';
 import DailySummary from './components/DailySummary';
+import PhotoGallery from './components/PhotoGallery';
 
 import { DataProvider } from './DataContext';
 
@@ -16,6 +17,7 @@ const quickLinks = [
   { id: 'duty', label: '餐廳輪值', icon: UtensilsCrossed },
   { id: 'lodging', label: '住房資訊', icon: Home },
   { id: 'budget', label: '費用分攤', icon: Wallet },
+  { id: 'photos', label: '相簿', icon: Images },
 ];
 
 function scrollToSection(id: string) {
@@ -83,7 +85,7 @@ export default function App() {
 
         <nav className="sticky top-0 z-50 glass-effect border-b border-camp-border">
           <div className="max-w-6xl mx-auto px-2">
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-5 gap-1">
               {quickLinks.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -127,6 +129,10 @@ export default function App() {
             <Budget />
             <h3 className="text-lg md:text-xl font-black text-camp-text mt-10 mb-4 tracking-tight px-1">旅途記帳</h3>
             <Expenses />
+          </Section>
+
+          <Section id="photos" title="旅行相簿">
+            <PhotoGallery />
           </Section>
         </main>
 
