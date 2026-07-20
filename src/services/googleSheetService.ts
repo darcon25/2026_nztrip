@@ -72,29 +72,75 @@ async function fetchCSV(gid: string) {
   });
 }
 
-// 把「Hotel description」「Hotel address」都相同的連續幾天合併成一張住宿卡片
-function deriveLodging(days: DayData[]): LodgingData[] {
-  const sorted = [...days].sort((a, b) => a.day - b.day);
-  const groups: DayData[][] = [];
-  for (const d of sorted) {
-    if (!d.hotel && !d.hotelAddress) continue;
-    const last = groups[groups.length - 1];
-    const prev = last?.[last.length - 1];
-    if (prev && prev.day === d.day - 1 && prev.hotel === d.hotel && prev.hotelAddress === d.hotelAddress) {
-      last.push(d);
-    } else {
-      groups.push([d]);
+// highlights 欄位裡「XXX/YYY 住宿」這段是誰住這個地點的備註，跟其他行程亮點混在同一格
+function extractFamilies(highlights: string): string[] {
+  const normalized = String(highlights ?? '').normalize('NFKC');
+  const lodgingSegment = normalized
+    .split(/[,，、]/)
+    .map(s => s.trim())
+    .find(s => /住宿$/.test(s));
+  if (!lodgingSegment) return [];
+  return lodgingSegment
+    .replace(/住宿$/, '')
+    .split(/[/&\s]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+interface RawLodgingRow {
+  dayNum: number;
+  date: string;
+  hotel: string;
+  hotelAddress: string;
+  families: string[];
+}
+
+// 同一天可能有好幾組家庭分開住（例如基督城三天，Fenix/Jerry/Ziv、Richard/Howard、Max/James 各自一組），
+// 每一列都是獨立的住宿點，不能直接合併；只有「同一組人、同一個地點」連續好幾天才合併成一張卡片。
+function deriveLodging(daysRaw: any[]): LodgingData[] {
+  const byDay = new Map<number, RawLodgingRow[]>();
+  for (const r of daysRaw) {
+    const hotel = String(r['Hotel description'] ?? '').trim();
+    const hotelAddress = String(r['Hotel address'] ?? '').trim();
+    if (!hotel && !hotelAddress) continue;
+    const dayNum = parseInt(String(r.day_id ?? '').replace('D', ''), 10);
+    if (!Number.isFinite(dayNum)) continue;
+    const row: RawLodgingRow = {
+      dayNum,
+      date: String(r.date ?? '').trim(),
+      hotel,
+      hotelAddress,
+      families: extractFamilies(r.highlights),
+    };
+    if (!byDay.has(dayNum)) byDay.set(dayNum, []);
+    byDay.get(dayNum)!.push(row);
+  }
+
+  interface Group { hotel: string; hotelAddress: string; families: string[]; startDate: string; lastDate: string; lastDayNum: number }
+  const openByKey = new Map<string, Group>();
+  const groups: Group[] = [];
+
+  for (const dayNum of [...byDay.keys()].sort((a, b) => a - b)) {
+    for (const row of byDay.get(dayNum)!) {
+      const key = `${row.hotel}|${row.hotelAddress}|${row.families.join(',')}`;
+      const existing = openByKey.get(key);
+      if (existing && existing.lastDayNum === dayNum - 1) {
+        existing.lastDate = row.date;
+        existing.lastDayNum = dayNum;
+      } else {
+        const group: Group = { hotel: row.hotel, hotelAddress: row.hotelAddress, families: row.families, startDate: row.date, lastDate: row.date, lastDayNum: dayNum };
+        openByKey.set(key, group);
+        groups.push(group);
+      }
     }
   }
-  return groups.map(group => {
-    const first = group[0];
-    const lastDay = group[group.length - 1];
-    return {
-      dateRange: group.length > 1 ? `${first.date}-${lastDay.date}` : first.date,
-      name: first.hotel,
-      address: first.hotelAddress,
-    };
-  });
+
+  return groups.map(g => ({
+    dateRange: g.startDate === g.lastDate ? g.startDate : `${g.startDate}-${g.lastDate}`,
+    name: g.hotel,
+    address: g.hotelAddress,
+    roomNote: g.families.length > 0 ? `${g.families.join('、')} 家` : undefined,
+  }));
 }
 
 export async function getAllData() {
@@ -198,7 +244,7 @@ export async function getAllData() {
         note: row.note ? String(row.note).trim() || undefined : undefined
       }));
 
-    const lodging = deriveLodging(days);
+    const lodging = deriveLodging(daysRaw);
 
     return { days, budget, arrivals, cookAssignments, lodging };
   } catch (error) {
