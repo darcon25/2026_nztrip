@@ -63,14 +63,11 @@ export default function CookCalendar() {
   const [dishDraft, setDishDraft] = useState('');
   const [noteDraft, setNoteDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const [pendingEdit, setPendingEdit] = useState<{ dayId: string; meal: string; family: string } | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(IDENTITY_KEY);
-    if (saved) {
-      setIdentity(saved);
-    } else {
-      setShowFamilyModal(true);
-    }
+    if (saved) setIdentity(saved);
   }, []);
 
   const fetchCookDishes = async () => {
@@ -88,12 +85,6 @@ export default function CookCalendar() {
 
   const families = useMemo(() => Array.from(new Set(cookAssignments.map(a => a.family))), [cookAssignments]);
 
-  const chooseIdentity = (family: string) => {
-    localStorage.setItem(IDENTITY_KEY, family);
-    setIdentity(family);
-    setShowFamilyModal(false);
-  };
-
   const dishMap = useMemo(() => {
     const map = new Map<string, Resolved>();
     for (const row of cookDishes) {
@@ -106,6 +97,28 @@ export default function CookCalendar() {
     const backend = dishMap.get(`${a.dayId}|${a.meal}|${a.family}`);
     if (backend) return backend;
     return { dish: a.dish, note: a.note };
+  };
+
+  const chooseIdentity = (family: string) => {
+    localStorage.setItem(IDENTITY_KEY, family);
+    setIdentity(family);
+    setShowFamilyModal(false);
+    if (pendingEdit && pendingEdit.family === family) {
+      const assignment = cookAssignments.find(
+        a => a.dayId === pendingEdit.dayId && a.meal === pendingEdit.meal && a.family === family
+      );
+      if (assignment) startEdit(pendingEdit.dayId, pendingEdit.meal, resolvedFor(assignment));
+    }
+    setPendingEdit(null);
+  };
+
+  const handleFillClick = (dayId: string, meal: string, family: string, resolved: Resolved) => {
+    if (identity === family) {
+      startEdit(dayId, meal, resolved);
+    } else if (!identity) {
+      setPendingEdit({ dayId, meal, family });
+      setShowFamilyModal(true);
+    }
   };
 
   const dayGroups = useMemo(() => {
@@ -248,7 +261,10 @@ export default function CookCalendar() {
               </div>
               <button
                 type="button"
-                onClick={() => setShowFamilyModal(false)}
+                onClick={() => {
+                  setShowFamilyModal(false);
+                  setPendingEdit(null);
+                }}
                 className="w-full min-h-[44px] mt-4 rounded-2xl text-sm font-bold text-camp-muted hover:text-camp-text hover:bg-camp-bg transition-all"
               >
                 先不選，回到上一頁
@@ -399,13 +415,13 @@ export default function CookCalendar() {
                               <span className="text-sm font-medium text-camp-muted italic">還沒填</span>
                             )}
                           </div>
-                          {isMine && !isEditingThis && (
+                          {(isMine || !identity) && !isEditingThis && (
                             <button
                               type="button"
-                              onClick={() => startEdit(selectedGroup.dayId, meal, resolved)}
+                              onClick={() => handleFillClick(selectedGroup.dayId, meal, a.family, resolved)}
                               className="min-h-[36px] px-4 py-1.5 rounded-full text-xs font-black bg-camp-brown text-camp-card hover:opacity-90 active:scale-[0.99] transition-all"
                             >
-                              填寫
+                              {isMine ? '填寫' : '這是我家，填寫'}
                             </button>
                           )}
                         </div>
