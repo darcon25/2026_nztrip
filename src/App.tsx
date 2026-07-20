@@ -22,9 +22,23 @@ const quickLinks = [
 
 function scrollToSection(id: string) {
   const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Google Sheet 資料是非同步載入的，點擊當下版面可能還沒到最終高度（尤其下方的
+  // 住房資訊、費用分攤），資料回來後版面變高會讓原本捲的位置偏掉，這裡補幾次校正。
+  // scroll-mt-24 讓對齊位置不是 top:0，所以要拿 scroll-margin-top 當基準比對，不能直接比 0。
+  [300, 900, 1800].forEach((delay) => {
+    setTimeout(() => {
+      const target = document.getElementById(id);
+      if (!target) return;
+      const expectedTop = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+      const actualTop = target.getBoundingClientRect().top;
+      if (Math.abs(actualTop - expectedTop) > 4) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, delay);
+  });
 }
 
 function Placeholder({ title, icon: Icon }: { title: string; icon: React.ElementType }) {
