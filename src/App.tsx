@@ -4,7 +4,7 @@ import Overview from './components/Overview';
 import Budget from './components/Budget';
 import Expenses from './components/Expenses';
 import Itinerary from './components/Itinerary';
-import Duty from './components/Duty';
+import CookCalendar from './components/CookCalendar';
 import Lodging from './components/Lodging';
 import AdventureMap from './components/AdventureMap';
 import DailySummary from './components/DailySummary';
@@ -118,7 +118,7 @@ export default function App() {
           </Section>
 
           <Section id="duty" title="餐廳及煮飯輪值">
-            <Duty />
+            <CookCalendar />
           </Section>
 
           <Section id="lodging" title="住房資訊">

@@ -105,6 +105,19 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS cook_dishes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    day_id TEXT NOT NULL,
+    meal TEXT NOT NULL,
+    family TEXT NOT NULL,
+    dish TEXT NOT NULL,
+    note TEXT,
+    updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(day_id, meal, family)
+  )
+`);
+
 const ALLOWED_PHOTO_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"];
 
 function isHeic(mimeType: string, filename: string) {
@@ -466,6 +479,38 @@ async function startServer() {
     const photoId = Number(req.params.id);
     const reactions = reactionsByPhotoId([photoId])[photoId] || {};
     res.json({ reactions });
+  });
+
+  app.get("/api/cook-dishes", (req, res) => {
+    const rows = db.prepare("SELECT * FROM cook_dishes").all();
+    res.json(rows);
+  });
+
+  app.post("/api/cook-dishes", (req, res) => {
+    const { dayId, meal, family, dish, note } = req.body;
+    if (!dayId || typeof dayId !== "string") {
+      return res.status(400).json({ error: "dayId is required" });
+    }
+    if (!meal || typeof meal !== "string") {
+      return res.status(400).json({ error: "meal is required" });
+    }
+    if (!family || typeof family !== "string") {
+      return res.status(400).json({ error: "family is required" });
+    }
+    if (typeof dish !== "string" || dish.trim() === "") {
+      return res.status(400).json({ error: "dish is required" });
+    }
+    const cleanNote = typeof note === "string" && note.trim() !== "" ? note.trim() : null;
+    db.prepare(
+      `INSERT INTO cook_dishes (day_id, meal, family, dish, note, updated)
+       VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+       ON CONFLICT(day_id, meal, family) DO UPDATE SET dish = ?, note = ?, updated = CURRENT_TIMESTAMP`
+    ).run(dayId, meal, family, dish.trim(), cleanNote, dish.trim(), cleanNote);
+
+    const row = db
+      .prepare("SELECT * FROM cook_dishes WHERE day_id = ? AND meal = ? AND family = ?")
+      .get(dayId, meal, family);
+    res.json(row);
   });
 
   // Vite middleware for development
