@@ -10,6 +10,21 @@ const WEEKDAY_LABEL = ['日', '一', '二', '三', '四', '五', '六'];
 const IDENTITY_KEY = 'nztrip.cookFamily';
 const TRIP_YEAR = 2026;
 
+const FAMILY_COLOR_PALETTE = [
+  { border: 'border-sky-500', bg: 'bg-sky-500/10', text: 'text-sky-700', hover: 'hover:bg-sky-500/20' },
+  { border: 'border-amber-500', bg: 'bg-amber-500/10', text: 'text-amber-700', hover: 'hover:bg-amber-500/20' },
+  { border: 'border-purple-500', bg: 'bg-purple-500/10', text: 'text-purple-700', hover: 'hover:bg-purple-500/20' },
+  { border: 'border-teal-500', bg: 'bg-teal-500/10', text: 'text-teal-700', hover: 'hover:bg-teal-500/20' },
+  { border: 'border-indigo-500', bg: 'bg-indigo-500/10', text: 'text-indigo-700', hover: 'hover:bg-indigo-500/20' },
+  { border: 'border-orange-500', bg: 'bg-orange-500/10', text: 'text-orange-700', hover: 'hover:bg-orange-500/20' },
+];
+const MAX_FAMILY_COLOR = { border: 'border-pink-500', bg: 'bg-pink-500/10', text: 'text-pink-700', hover: 'hover:bg-pink-500/20' };
+
+function familyColor(family: string, idx: number) {
+  if (family.trim().toLowerCase() === 'max') return MAX_FAMILY_COLOR;
+  return FAMILY_COLOR_PALETTE[idx % FAMILY_COLOR_PALETTE.length];
+}
+
 function mealLabel(meal: string) {
   return MEAL_LABEL[meal] ?? meal;
 }
@@ -212,17 +227,32 @@ export default function CookCalendar() {
               <h3 className="text-lg font-black text-camp-text mb-1 text-center">你是哪一家？</h3>
               <p className="text-sm text-camp-muted text-center mb-5 font-medium">選好後才能填寫你家要煮什麼</p>
               <div className="grid grid-cols-2 gap-3">
-                {families.map(f => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => chooseIdentity(f)}
-                    className="min-h-[52px] rounded-2xl border-2 border-camp-green bg-camp-green/10 text-camp-green font-black text-base hover:bg-camp-green/20 active:scale-[0.99] transition-all"
-                  >
-                    {f} 家
-                  </button>
-                ))}
+                {(() => {
+                  let paletteIdx = 0;
+                  return families.map(f => {
+                    const isMax = f.trim().toLowerCase() === 'max';
+                    const color = familyColor(f, paletteIdx);
+                    if (!isMax) paletteIdx += 1;
+                    return (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => chooseIdentity(f)}
+                        className={`min-h-[52px] rounded-2xl border-2 ${color.border} ${color.bg} ${color.text} font-black text-base ${color.hover} active:scale-[0.99] transition-all`}
+                      >
+                        {f} 家
+                      </button>
+                    );
+                  });
+                })()}
               </div>
+              <button
+                type="button"
+                onClick={() => setShowFamilyModal(false)}
+                className="w-full min-h-[44px] mt-4 rounded-2xl text-sm font-bold text-camp-muted hover:text-camp-text hover:bg-camp-bg transition-all"
+              >
+                先不選，回到上一頁
+              </button>
             </motion.div>
           </motion.div>
         )}
