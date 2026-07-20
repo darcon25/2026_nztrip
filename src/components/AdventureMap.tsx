@@ -28,10 +28,10 @@ const PLACES: Place[] = [
 
 // 地圖背景裝飾角色：純裝飾、不互動，位置刻意避開 7 個地點標記與路線（都在 my>55 的區域）
 const BACKGROUND_CHARACTERS = [
-  { id: 'wizard', src: '/char-wizard.png', mx: 82, my: 18, size: 44 },
-  { id: 'adventurer', src: '/char-adventurer.png', mx: 85, my: 42, size: 44 },
-  { id: 'warrior', src: '/char-warrior.png', mx: 8, my: 15, size: 44 },
-  { id: 'leopard', src: '/char-leopard.png', mx: 60, my: 10, size: 40 },
+  { id: 'wizard', src: '/char-wizard.png', mx: 72, my: 27, size: 56 },
+  { id: 'adventurer', src: '/char-adventurer.png', mx: 82, my: 38, size: 56 },
+  { id: 'warrior', src: '/char-warrior.png', mx: 58, my: 44, size: 56 },
+  { id: 'leopard', src: '/char-leopard.png', mx: 71, my: 13, size: 56 },
 ];
 
 // 簡化南島輪廓（viewBox 0 0 100 125，北方朝上）
