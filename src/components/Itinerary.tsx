@@ -40,12 +40,28 @@ function openGoogleMap(location: string) {
   window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
 }
 
+type PhotoStage = 'primary' | 'fallback' | 'failed';
+
 const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }> = ({ day, item, idx }) => {
-  const [imgError, setImgError] = useState(false);
+  const [stage, setStage] = useState<PhotoStage>('primary');
   const [showComments, setShowComments] = useState(false);
 
-  const target = item.map || item.label;
-  const photoSrc = `/api/place-photo?query=${encodeURIComponent(target)}`;
+  const navTarget = item.map || item.label;
+
+  const primaryTarget = item.label;
+  const trimmedMap = item.map?.trim();
+  const fallbackTarget = trimmedMap && trimmedMap !== item.label ? trimmedMap : null;
+
+  const photoTarget = stage === 'fallback' && fallbackTarget ? fallbackTarget : primaryTarget;
+  const photoSrc = `/api/place-photo?query=${encodeURIComponent(photoTarget)}`;
+
+  const handleImgError = () => {
+    if (stage === 'primary' && fallbackTarget) {
+      setStage('fallback');
+    } else {
+      setStage('failed');
+    }
+  };
 
   return (
     <motion.div
@@ -56,7 +72,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
       className="bg-camp-card rounded-[1.75rem] border border-camp-border shadow-sm overflow-hidden flex flex-col"
     >
       <div className="relative aspect-video bg-camp-bg">
-        {imgError ? (
+        {stage === 'failed' ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-camp-muted">
             <div className="text-camp-brown">{itemIcon(item)}</div>
             <span className="text-sm font-bold px-4 text-center">{item.label}</span>
@@ -66,7 +82,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
             src={photoSrc}
             alt={item.label}
             loading="lazy"
-            onError={() => setImgError(true)}
+            onError={handleImgError}
             className="w-full h-full object-cover"
           />
         )}
@@ -118,7 +134,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
 
         <div className="mt-auto flex flex-col sm:flex-row gap-2 pt-1">
           <button
-            onClick={() => openGoogleMap(target)}
+            onClick={() => openGoogleMap(navTarget)}
             className="flex-1 inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl bg-camp-brown text-camp-card text-sm font-black shadow-sm hover:bg-camp-brown-dark transition-colors"
           >
             <Navigation className="w-4 h-4" />
