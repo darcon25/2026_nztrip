@@ -40,12 +40,28 @@ function openGoogleMap(location: string) {
   window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
 }
 
+type PhotoStage = 'primary' | 'fallback' | 'failed';
+
 const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }> = ({ day, item, idx }) => {
-  const [imgError, setImgError] = useState(false);
+  const [stage, setStage] = useState<PhotoStage>('primary');
   const [showComments, setShowComments] = useState(false);
 
-  const target = item.map || item.label;
-  const photoSrc = `/api/place-photo?query=${encodeURIComponent(target)}`;
+  const navTarget = item.map || item.label;
+
+  const primaryTarget = item.label;
+  const trimmedMap = item.map?.trim();
+  const fallbackTarget = trimmedMap && trimmedMap !== item.label ? trimmedMap : null;
+
+  const photoTarget = stage === 'fallback' && fallbackTarget ? fallbackTarget : primaryTarget;
+  const photoSrc = `/api/place-photo?query=${encodeURIComponent(photoTarget)}`;
+
+  const handleImgError = () => {
+    if (stage === 'primary' && fallbackTarget) {
+      setStage('fallback');
+    } else {
+      setStage('failed');
+    }
+  };
 
   return (
     <motion.div
@@ -56,7 +72,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
       className="bg-camp-card rounded-[1.75rem] border border-camp-border shadow-sm overflow-hidden flex flex-col"
     >
       <div className="relative aspect-video bg-camp-bg">
-        {imgError ? (
+        {stage === 'failed' ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-camp-muted">
             <div className="text-camp-brown">{itemIcon(item)}</div>
             <span className="text-sm font-bold px-4 text-center">{item.label}</span>
@@ -66,7 +82,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
             src={photoSrc}
             alt={item.label}
             loading="lazy"
-            onError={() => setImgError(true)}
+            onError={handleImgError}
             className="w-full h-full object-cover"
           />
         )}
@@ -118,7 +134,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
 
         <div className="mt-auto flex flex-col sm:flex-row gap-2 pt-1">
           <button
-            onClick={() => openGoogleMap(target)}
+            onClick={() => openGoogleMap(navTarget)}
             className="flex-1 inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl bg-camp-brown text-camp-card text-sm font-black shadow-sm hover:bg-camp-brown-dark transition-colors"
           >
             <Navigation className="w-4 h-4" />
@@ -170,20 +186,24 @@ function DayHeader({ day }: { day: DayData }) {
   );
 }
 
-export default function Itinerary() {
-  const { days } = useData();
-  const [selectedDay, setSelectedDay] = useState<number | 'all'>('all');
+type ItineraryProps = {
+  selectedDay: number | null;
+  onSelectDay: (day: number | null) => void;
+};
 
-  const visibleDays = selectedDay === 'all' ? days : days.filter((d) => d.day === selectedDay);
+export default function Itinerary({ selectedDay, onSelectDay }: ItineraryProps) {
+  const { days } = useData();
+
+  const visibleDays = selectedDay === null ? days : days.filter((d) => d.day === selectedDay);
 
   return (
     <div className="space-y-6">
       <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar">
         <button
-          onClick={() => setSelectedDay('all')}
+          onClick={() => onSelectDay(null)}
           className={cn(
             'flex-shrink-0 min-h-[44px] px-5 rounded-full text-sm font-black border-2 transition-colors',
-            selectedDay === 'all'
+            selectedDay === null
               ? 'bg-camp-brown text-camp-card border-camp-brown'
               : 'bg-camp-card text-camp-text border-camp-border hover:border-camp-brown'
           )}
@@ -193,7 +213,7 @@ export default function Itinerary() {
         {days.map((d) => (
           <button
             key={d.day}
-            onClick={() => setSelectedDay(d.day)}
+            onClick={() => onSelectDay(d.day)}
             className={cn(
               'flex-shrink-0 min-h-[44px] px-5 rounded-full text-sm font-black border-2 transition-colors',
               selectedDay === d.day

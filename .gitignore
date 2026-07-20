@@ -4,3 +4,5 @@ comments.db
 .env.local
 .env
 .photo-cache/
+.uploads/
+.DS_Store

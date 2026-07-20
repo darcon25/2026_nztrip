@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Map as MapIcon, MapPin, Tent, Compass } from 'lucide-react';
 import { useData } from '../DataContext';
@@ -24,6 +24,14 @@ const PLACES: Place[] = [
   { id: 'queenstown', name: '皇后鎮', en: 'Queenstown', aliases: ['皇后鎮', 'Queenstown', 'Skyline', 'Fergburger'], mx: 30, my: 81.3 },
   { id: 'teanau', name: '蒂阿瑙', en: 'Te Anau', aliases: ['蒂阿瑙', 'Te Anau', '螢火蟲', 'Glowworm'], mx: 23, my: 87.5 },
   { id: 'milford', name: '米爾福德', en: 'Milford Sound', aliases: ['米爾福德', 'Milford', '峽灣'], mx: 17.5, my: 78.8 },
+];
+
+// 地圖背景裝飾角色：純裝飾、不互動，位置刻意避開 7 個地點標記與路線（都在 my>55 的區域）
+const BACKGROUND_CHARACTERS = [
+  { id: 'wizard', src: '/char-wizard.png', mx: 72, my: 27, size: 56 },
+  { id: 'adventurer', src: '/char-adventurer.png', mx: 82, my: 38, size: 56 },
+  { id: 'warrior', src: '/char-warrior.png', mx: 58, my: 44, size: 56 },
+  { id: 'leopard', src: '/char-leopard.png', mx: 71, my: 13, size: 56 },
 ];
 
 // 簡化南島輪廓（viewBox 0 0 100 125，北方朝上）
@@ -58,9 +66,13 @@ function scrollToHighlights() {
   document.getElementById('highlights')?.scrollIntoView({ behavior: 'smooth' });
 }
 
-export default function AdventureMap() {
+type AdventureMapProps = {
+  selectedDay: number | null;
+  onSelectDay: (day: number | null) => void;
+};
+
+export default function AdventureMap({ selectedDay, onSelectDay }: AdventureMapProps) {
   const { days } = useData();
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [isaLoaded, setIsaLoaded] = useState(true);
 
   const sortedDays = useMemo(() => [...days].sort((a, b) => a.day - b.day), [days]);
@@ -84,6 +96,16 @@ export default function AdventureMap() {
       if (p && !seen.has(p.id)) { seen.add(p.id); list.push(p); }
     });
     return list.length > 0 ? list : PLACES;
+  }, [sortedDays, dayPlace]);
+
+  // 一個地點可能涵蓋多天（例如皇后鎮 Day 5-8），點標記時篩到最早的那天
+  const placeFirstDay = useMemo(() => {
+    const m = new Map<string, number>();
+    sortedDays.forEach(d => {
+      const p = dayPlace.get(d.day);
+      if (p && !m.has(p.id)) m.set(p.id, d.day);
+    });
+    return m;
   }, [sortedDays, dayPlace]);
 
   // 路線：依每天順序串起地點（去掉連續重複）
@@ -116,7 +138,7 @@ export default function AdventureMap() {
       {/* Day 篩選 chips（依 Sheet 的天數產生） */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-4">
         <button
-          onClick={() => setSelectedDay(null)}
+          onClick={() => onSelectDay(null)}
           className={`shrink-0 min-h-[44px] px-4 rounded-full text-sm font-black border transition-colors ${
             selectedDay === null
               ? 'bg-camp-brown text-camp-card border-camp-brown'
@@ -128,7 +150,7 @@ export default function AdventureMap() {
         {sortedDays.map((d) => (
           <button
             key={d.day}
-            onClick={() => setSelectedDay(d.day)}
+            onClick={() => { onSelectDay(d.day); scrollToHighlights(); }}
             className={`shrink-0 min-h-[44px] px-4 rounded-full text-sm font-black border transition-colors ${
               selectedDay === d.day
                 ? 'bg-camp-brown text-camp-card border-camp-brown'
@@ -168,6 +190,25 @@ export default function AdventureMap() {
           onError={(e) => { e.currentTarget.style.display = 'none'; }}
         />
 
+        {/* 背景裝飾角色：固定位置、不可點擊，純粹增添氣氛 */}
+        {BACKGROUND_CHARACTERS.map((c, idx) => (
+          <motion.img
+            key={c.id}
+            src={c.src}
+            alt=""
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.9, scale: 1 }}
+            transition={{ delay: 0.3 + idx * 0.08, duration: 0.5 }}
+            style={{
+              left: `${c.mx}%`,
+              top: `${toTop(c.my)}%`,
+              width: c.size,
+              height: c.size,
+            }}
+            className="absolute -translate-x-1/2 -translate-y-1/2 z-10 object-contain drop-shadow pointer-events-none select-none"
+          />
+        ))}
+
         {/* 路線（依 Sheet 每天順序） */}
         {routeD && (
           <svg viewBox="0 0 100 125" className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid meet">
@@ -184,7 +225,11 @@ export default function AdventureMap() {
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.15 + idx * 0.05, type: 'spring', stiffness: 220, damping: 18 }}
-              onClick={scrollToHighlights}
+              onClick={() => {
+                const firstDay = placeFirstDay.get(p.id);
+                if (firstDay != null) onSelectDay(firstDay);
+                scrollToHighlights();
+              }}
               style={{ left: `${p.mx}%`, top: `${toTop(p.my)}%` }}
               className="absolute -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center min-w-[44px] min-h-[44px] justify-center group"
               aria-label={p.name}
