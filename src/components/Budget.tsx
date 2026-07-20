@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { Car, Hotel, CreditCard } from 'lucide-react';
+import { Car, Hotel, CreditCard, Wallet } from 'lucide-react';
 import { useData } from '../DataContext';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -98,6 +98,24 @@ export default function Budget() {
                 </div>
                 <span className="font-black text-2xl">NZD {selectedFamily.total}</span>
               </div>
+              {selectedFamily.prepaid > 0 && (
+                <>
+                  <div className="bg-camp-bg p-5 rounded-2xl border border-camp-border flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-camp-accent/15 p-2 rounded-lg border border-camp-accent/30"><Wallet className="w-5 h-5 text-camp-accent" /></div>
+                      <span className="font-bold text-camp-text">已預付</span>
+                    </div>
+                    <span className="font-black text-camp-accent text-lg">NZD {selectedFamily.prepaid}</span>
+                  </div>
+                  <div className="bg-camp-green p-6 rounded-2xl text-camp-card flex items-center justify-between shadow-lg">
+                    <div className="flex items-center gap-3">
+                      <Wallet className="w-6 h-6 text-camp-card opacity-80" />
+                      <span className="font-black text-xl">尚需支付</span>
+                    </div>
+                    <span className="font-black text-2xl">NZD {selectedFamily.total - selectedFamily.prepaid}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

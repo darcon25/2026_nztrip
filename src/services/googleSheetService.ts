@@ -30,6 +30,7 @@ export interface BudgetData {
   car: number;
   hotel: number;
   total: number;
+  prepaid: number;
 }
 
 export interface ArrivalData {
@@ -157,7 +158,8 @@ export async function getAllData() {
       name: String(row.name ?? row.Name ?? '').trim(),
       car: num(row.car ?? row.Car),
       hotel: num(row.hotel ?? row.Hotel_Cost ?? row.accomadation),
-      total: num(row.total ?? row.Total)
+      total: num(row.total ?? row.Total),
+      prepaid: num(row['預付款'] ?? row.prepaid)
     }));
 
     // 同一個 day_id 可能對應多列（出發前幾天不同家庭分開住宿的天數），
