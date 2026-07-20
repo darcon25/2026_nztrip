@@ -26,6 +26,14 @@ const PLACES: Place[] = [
   { id: 'milford', name: '米爾福德', en: 'Milford Sound', aliases: ['米爾福德', 'Milford', '峽灣'], mx: 17.5, my: 78.8 },
 ];
 
+// 地圖背景裝飾角色：純裝飾、不互動，位置刻意避開 7 個地點標記與路線（都在 my>55 的區域）
+const BACKGROUND_CHARACTERS = [
+  { id: 'wizard', src: '/char-wizard.png', mx: 82, my: 18, size: 44 },
+  { id: 'adventurer', src: '/char-adventurer.png', mx: 85, my: 42, size: 44 },
+  { id: 'warrior', src: '/char-warrior.png', mx: 8, my: 15, size: 44 },
+  { id: 'leopard', src: '/char-leopard.png', mx: 60, my: 10, size: 40 },
+];
+
 // 簡化南島輪廓（viewBox 0 0 100 125，北方朝上）
 const islandPath =
   'M 62 10 C 72 14, 76 20, 79 28 C 82 38, 85 46, 86 52 L 93 55 L 86 59 ' +
@@ -181,6 +189,25 @@ export default function AdventureMap({ selectedDay, onSelectDay }: AdventureMapP
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => { e.currentTarget.style.display = 'none'; }}
         />
+
+        {/* 背景裝飾角色：固定位置、不可點擊，純粹增添氣氛 */}
+        {BACKGROUND_CHARACTERS.map((c, idx) => (
+          <motion.img
+            key={c.id}
+            src={c.src}
+            alt=""
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.9, scale: 1 }}
+            transition={{ delay: 0.3 + idx * 0.08, duration: 0.5 }}
+            style={{
+              left: `${c.mx}%`,
+              top: `${toTop(c.my)}%`,
+              width: c.size,
+              height: c.size,
+            }}
+            className="absolute -translate-x-1/2 -translate-y-1/2 z-10 object-contain drop-shadow pointer-events-none select-none"
+          />
+        ))}
 
         {/* 路線（依 Sheet 每天順序） */}
         {routeD && (
