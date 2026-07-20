@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Users, Map, Sparkles, UtensilsCrossed, Home, Wallet, Images } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, Map, Sparkles, UtensilsCrossed, Home, Wallet, Images, ArrowUp } from 'lucide-react';
 import Overview from './components/Overview';
 import Budget from './components/Budget';
 import Expenses from './components/Expenses';
@@ -61,6 +61,34 @@ function SiteHeader() {
         </div>
       </div>
     </header>
+  );
+}
+
+function BackToTop() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 600);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const handleClick = () => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+  };
+
+  if (!visible) return null;
+
+  return (
+    <button
+      onClick={handleClick}
+      aria-label="回到頂部"
+      className="fixed bottom-6 right-4 z-40 w-14 h-14 rounded-full bg-camp-brown text-camp-card shadow-lg flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+    >
+      <ArrowUp className="w-6 h-6" />
+    </button>
   );
 }
 
@@ -139,6 +167,8 @@ export default function App() {
         <footer className="max-w-6xl mx-auto px-4 py-12 text-center text-camp-muted text-sm font-medium">
           <p>© 2026 New Zealand South Island Family Trip. Crafted for the adventure.</p>
         </footer>
+
+        <BackToTop />
       </div>
     </DataProvider>
   );
