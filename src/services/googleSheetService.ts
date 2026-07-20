@@ -89,19 +89,56 @@ export async function getAllData() {
       total: num(row.total ?? row.Total)
     }));
 
-    const days: DayData[] = daysRaw.map(row => {
-      const dayNum = parseInt(String(row.day_id).replace('D', ''));
+    // 同一個 day_id 可能對應多列（出發前幾天不同家庭分開住宿的天數），
+    // 先依 day_id 分組，再合併成單一 DayData，避免下游元件出現重複的 Day 按鈕。
+    const daysGrouped = new Map<any, any[]>();
+    for (const row of daysRaw) {
+      const key = row.day_id;
+      if (!daysGrouped.has(key)) daysGrouped.set(key, []);
+      daysGrouped.get(key)!.push(row);
+    }
+
+    const isBlank = (v: unknown) => v === undefined || v === null || String(v).trim() === '';
+
+    // 同一組裡，把非空、彼此不同（逐字完全相同才算重複）的值用「、」串起來
+    const joinUnique = (rows: any[], field: string): string => {
+      const seen: string[] = [];
+      for (const r of rows) {
+        const v = r[field];
+        if (isBlank(v)) continue;
+        const s = String(v);
+        if (!seen.includes(s)) seen.push(s);
+      }
+      return seen.join('、');
+    };
+
+    // 同一組裡，由上到下找第一個非空值
+    const firstNonBlank = (rows: any[], field: string) => {
+      for (const r of rows) {
+        const v = r[field];
+        if (!isBlank(v)) return v;
+      }
+      return undefined;
+    };
+
+    const days: DayData[] = Array.from(daysGrouped.entries()).map(([dayId, rows]) => {
+      const first = rows[0];
+      const dayNum = parseInt(String(dayId).replace('D', ''));
       return {
         day: dayNum,
-        date: row.date,
-        title: row.title,
-        hotel: row.hotel,
-        meals: { b: row.meal_b, l: row.meal_l, d: row.meal_d },
-        deadline: row.alert,
-        highlights: row.highlights,
-        mapPlace: row.map_place,
+        date: first.date,
+        title: first.title,
+        hotel: joinUnique(rows, 'hotel'),
+        meals: {
+          b: firstNonBlank(rows, 'meal_b'),
+          l: firstNonBlank(rows, 'meal_l'),
+          d: firstNonBlank(rows, 'meal_d')
+        },
+        deadline: firstNonBlank(rows, 'alert'),
+        highlights: joinUnique(rows, 'highlights'),
+        mapPlace: firstNonBlank(rows, 'map_place'),
         items: itemsRaw
-          .filter(item => item.day_id === row.day_id)
+          .filter(item => item.day_id === dayId)
           .map(item => ({
             day: dayNum,
             time: item.time,
@@ -113,7 +150,7 @@ export async function getAllData() {
             foodRec: item.food_rec
           }))
       };
-    });
+    }).sort((a, b) => a.day - b.day);
 
     // Hardcoded arrivals for now as they are not in the provided sheets
     const arrivals: ArrivalData[] = [
