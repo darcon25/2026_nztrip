@@ -12,33 +12,6 @@ interface DataContextType {
   error: string | null;
 }
 
-const fallbackLodging: LodgingData[] = [
-  {
-    dateRange: '7/22-7/24', name: '25 Teesdale Street',
-    address: '25 Teesdale Street, Christchurch, New Zealand',
-    checkin: '15:00 後自助入住，門鎖密碼另發',
-    roomNote: '一樓 Fenix 家、Jerry 家；二樓 Ziv 家、Cathy 家'
-  },
-  {
-    dateRange: '7/24-7/26', name: 'Lake Tekapo 湖景小屋',
-    address: 'Lakeside Drive, Lake Tekapo, New Zealand',
-    checkin: '16:00 後入住，鑰匙置物箱密碼 2026',
-    roomNote: 'A 棟：Richard 家、Max 家；B 棟：其餘家庭'
-  },
-  {
-    dateRange: '7/26-7/29', name: '皇后鎮 Airbnb 大宅',
-    address: 'Fernhill, Queenstown, New Zealand',
-    checkin: '自助入住，屋主會傳門鎖密碼',
-    roomNote: '主臥 Cathy 家、次臥 Fenix 家、閣樓小孩房'
-  },
-  {
-    dateRange: '7/29-7/31', name: '奧瑪魯 Airbnb',
-    address: 'Thames Street, Oamaru, New Zealand',
-    checkin: '15:00 後入住，看藍企鵝步行 5 分鐘',
-    roomNote: 'FJZH 三家共用，房間現場協調'
-  }
-];
-
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
@@ -52,7 +25,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       { type: 'Final Arrival', time: '7/24 14:35', detail: 'Max 家 (2大1小)', color: 'bg-indigo-600' }
     ],
     cookAssignments: [],
-    lodging: fallbackLodging
+    lodging: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -10,10 +10,11 @@ function cleanTitle(title: string) {
 }
 
 function parseHighlights(raw?: string) {
-  return String(raw ?? '')
+  const chips = String(raw ?? '')
     .split(/[,，、]/)
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter((s) => s && !/住宿$/.test(s));
+  return Array.from(new Set(chips));
 }
 
 export default function DailySummary() {

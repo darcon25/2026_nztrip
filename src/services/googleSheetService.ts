@@ -16,6 +16,7 @@ export interface DayData {
   date: string;
   title: string;
   hotel: string;
+  hotelAddress: string;
   meals: { b: string; l: string; d: string };
   deadline?: string;
   highlights?: string;
@@ -55,7 +56,6 @@ export interface LodgingData {
 const BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTYDbyWoOERQKg5uBjh6MmVl2gPGVy7CAG9XV1VbjAi3DK-vNIOjn50RYek4c8dV9PBjNf9tohYGF8Y/pub';
 
 const COOK_ASSIGNMENT_GID = '2142763341'; // 自煮分工
-const LODGING_GID = '';
 
 async function fetchCSV(gid: string) {
   const url = `${BASE_URL}?gid=${gid}&single=true&output=csv`;
@@ -69,6 +69,31 @@ async function fetchCSV(gid: string) {
       complete: (results) => resolve(results.data),
       error: (error: any) => reject(error),
     });
+  });
+}
+
+// 把「Hotel description」「Hotel address」都相同的連續幾天合併成一張住宿卡片
+function deriveLodging(days: DayData[]): LodgingData[] {
+  const sorted = [...days].sort((a, b) => a.day - b.day);
+  const groups: DayData[][] = [];
+  for (const d of sorted) {
+    if (!d.hotel && !d.hotelAddress) continue;
+    const last = groups[groups.length - 1];
+    const prev = last?.[last.length - 1];
+    if (prev && prev.day === d.day - 1 && prev.hotel === d.hotel && prev.hotelAddress === d.hotelAddress) {
+      last.push(d);
+    } else {
+      groups.push([d]);
+    }
+  }
+  return groups.map(group => {
+    const first = group[0];
+    const lastDay = group[group.length - 1];
+    return {
+      dateRange: group.length > 1 ? `${first.date}-${lastDay.date}` : first.date,
+      name: first.hotel,
+      address: first.hotelAddress,
+    };
   });
 }
 
@@ -128,7 +153,8 @@ export async function getAllData() {
         day: dayNum,
         date: first.date,
         title: first.title,
-        hotel: joinUnique(rows, 'hotel'),
+        hotel: joinUnique(rows, 'Hotel description'),
+        hotelAddress: joinUnique(rows, 'Hotel address'),
         meals: {
           b: firstNonBlank(rows, 'meal_b'),
           l: firstNonBlank(rows, 'meal_l'),
@@ -172,17 +198,7 @@ export async function getAllData() {
         note: row.note ? String(row.note).trim() || undefined : undefined
       }));
 
-    let lodging: LodgingData[] | undefined;
-    if (LODGING_GID) {
-      const lodgingRaw = await fetchCSV(LODGING_GID);
-      lodging = lodgingRaw.map(row => ({
-        dateRange: String(row.date_range),
-        name: String(row.name),
-        address: String(row.address),
-        checkin: row.checkin || undefined,
-        roomNote: row.room_note || undefined
-      }));
-    }
+    const lodging = deriveLodging(days);
 
     return { days, budget, arrivals, cookAssignments, lodging };
   } catch (error) {
