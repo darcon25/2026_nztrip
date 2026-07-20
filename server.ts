@@ -37,9 +37,15 @@ async function syncPhotoToN8n(photoId: number, storedFilePath: string, originalN
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PHOTO_CACHE_DIR = path.join(__dirname, ".photo-cache");
+// 資料庫、上傳照片都放在同一個可設定的資料夾底下，部署到有 Volume 的平台
+// （例如 Zeabur）時，只要把 Volume 掛在 DATA_DIR 指到的路徑，一次就保住全部資料。
+// 本機開發沒設 DATA_DIR 就沿用專案根目錄，行為跟之前一樣。
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+fs.mkdirSync(DATA_DIR, { recursive: true });
 
-const UPLOAD_DIR = path.join(__dirname, ".uploads");
+const PHOTO_CACHE_DIR = path.join(DATA_DIR, ".photo-cache");
+
+const UPLOAD_DIR = path.join(DATA_DIR, ".uploads");
 const UPLOAD_ORIGINALS_DIR = path.join(UPLOAD_DIR, "originals");
 const UPLOAD_DISPLAY_DIR = path.join(UPLOAD_DIR, "display");
 const UPLOAD_THUMBS_DIR = path.join(UPLOAD_DIR, "thumbs");
@@ -47,7 +53,7 @@ for (const dir of [UPLOAD_ORIGINALS_DIR, UPLOAD_DISPLAY_DIR, UPLOAD_THUMBS_DIR])
   fs.mkdirSync(dir, { recursive: true });
 }
 
-const db = new Database("comments.db");
+const db = new Database(path.join(DATA_DIR, "comments.db"));
 
 // Initialize database
 db.exec(`
