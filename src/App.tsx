@@ -14,7 +14,7 @@ import { DataProvider } from './DataContext';
 
 const quickLinks = [
   { id: 'flights', label: '人員班機', icon: Users },
-  { id: 'duty', label: '餐廳輪值', icon: UtensilsCrossed },
+  { id: 'duty', label: '煮飯輪值', icon: UtensilsCrossed },
   { id: 'lodging', label: '住房資訊', icon: Home },
   { id: 'budget', label: '費用分攤', icon: Wallet },
   { id: 'photos', label: '相簿', icon: Images },
@@ -159,7 +159,7 @@ export default function App() {
             <Overview />
           </Section>
 
-          <Section id="duty" title="餐廳及煮飯輪值">
+          <Section id="duty" title="煮飯輪值">
             <CookCalendar />
           </Section>
 
@@ -167,14 +167,16 @@ export default function App() {
             <Lodging />
           </Section>
 
-          <Section id="budget" title="費用分攤 & 記帳">
-            <Budget />
-            <h3 className="text-lg md:text-xl font-black text-camp-text mt-10 mb-4 tracking-tight px-1">旅途記帳</h3>
+          <Section id="expenses" title="旅途記帳">
             <Expenses />
           </Section>
 
           <Section id="photos" title="旅行相簿">
             <PhotoGallery />
+          </Section>
+
+          <Section id="budget">
+            <Budget />
           </Section>
         </main>
 

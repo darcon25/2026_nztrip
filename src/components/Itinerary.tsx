@@ -71,7 +71,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
       transition={{ duration: 0.4 }}
       className="bg-camp-card rounded-[1.75rem] border border-camp-border shadow-sm overflow-hidden flex flex-col"
     >
-      <div className="relative aspect-video bg-camp-bg">
+      <div className="relative aspect-[16/10] bg-camp-bg">
         {stage === 'failed' ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-camp-muted">
             <div className="text-camp-brown">{itemIcon(item)}</div>
@@ -91,7 +91,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
         </span>
       </div>
 
-      <div className="p-4 md:p-6 flex flex-col gap-3 flex-1">
+      <div className="p-3.5 md:p-5 flex flex-col gap-2.5 flex-1">
         <div className="flex items-start justify-between gap-2">
           <h4 className="font-black text-camp-text text-lg tracking-tight leading-snug">{item.label}</h4>
           {item.time && (
@@ -132,7 +132,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
           </div>
         )}
 
-        <div className="mt-auto flex flex-col sm:flex-row gap-2 pt-1">
+        <div className="mt-auto flex flex-row gap-2 pt-1">
           <button
             onClick={() => openGoogleMap(navTarget)}
             className="flex-1 inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl bg-camp-brown text-camp-card text-sm font-black shadow-sm hover:bg-camp-brown-dark transition-colors"

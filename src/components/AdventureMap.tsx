@@ -26,12 +26,13 @@ const PLACES: Place[] = [
   { id: 'milford', name: '米爾福德', en: 'Milford Sound', aliases: ['米爾福德', 'Milford', '峽灣'], mx: 17.5, my: 78.8 },
 ];
 
-// 地圖背景裝飾角色：純裝飾、不互動，位置刻意避開 7 個地點標記與路線（都在 my>55 的區域）
+// 地圖背景裝飾角色：純裝飾、不互動，位置刻意避開 7 個地點標記與路線（都在 my>55 的區域），
+// 分散在地圖上半部左右四區，避免手機上擠成一團
 const BACKGROUND_CHARACTERS = [
-  { id: 'wizard', src: '/char-wizard.png', mx: 72, my: 27, size: 56 },
-  { id: 'adventurer', src: '/char-adventurer.png', mx: 82, my: 38, size: 56 },
-  { id: 'warrior', src: '/char-warrior.png', mx: 58, my: 44, size: 56 },
-  { id: 'leopard', src: '/char-leopard.png', mx: 71, my: 13, size: 56 },
+  { id: 'leopard', src: '/char-leopard.png', mx: 20, my: 18, size: 56 },
+  { id: 'wizard', src: '/char-wizard.png', mx: 78, my: 22, size: 56 },
+  { id: 'warrior', src: '/char-warrior.png', mx: 33, my: 40, size: 56 },
+  { id: 'adventurer', src: '/char-adventurer.png', mx: 82, my: 46, size: 56 },
 ];
 
 // 簡化南島輪廓（viewBox 0 0 100 125，北方朝上）
@@ -125,9 +126,9 @@ export default function AdventureMap({ selectedDay, onSelectDay }: AdventureMapP
   return (
     <div className="bg-camp-card p-4 md:p-8 rounded-[2.5rem] shadow-sm border border-camp-border overflow-hidden">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <p className="text-camp-muted text-sm font-medium flex items-center gap-2">
+        <p className="text-camp-text text-base font-black flex items-center gap-2">
           <MapIcon className="w-5 h-5 text-camp-brown shrink-0" />
-          點日期看 Isa 走到哪一站，點站點跳到亮點卡片
+          汐止艾蓮娜公主南島地圖
         </p>
         <div className="hidden sm:flex items-center gap-2 bg-camp-green/15 border border-camp-green/30 px-4 py-1.5 rounded-full text-xs font-black text-camp-green uppercase tracking-widest">
           <Compass className="w-4 h-4" />
@@ -286,7 +287,7 @@ export default function AdventureMap({ selectedDay, onSelectDay }: AdventureMapP
       <p className="mt-4 text-center text-sm text-camp-muted font-medium">
         {selectedDay != null
           ? `Day ${selectedDay}・${activePlace.name}（${activePlace.en}）`
-          : '選一個 Day，看看 Isa 今天走到哪一站'}
+          : '點地圖站點，跳到當天景點卡片'}
       </p>
     </div>
   );
