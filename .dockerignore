@@ -1,0 +1,10 @@
+node_modules
+dist
+comments.db
+.env.local
+.env
+.photo-cache/
+.uploads/
+.DS_Store
+.git
+docs
