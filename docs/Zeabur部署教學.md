@@ -117,7 +117,25 @@ docker build --platform linux/amd64 --provenance=false --sbom=false \
 docker push ghcr.io/darcon25/2026_nztrip:latest
 ```
 
-推上去之後，回 Zeabur 服務頁面，點「**更新映像**」（服務狀態頁面上如果顯示錯誤會有這顆按鈕；平時要手動觸發可以到「設定」→「來源」重新按一次儲存），確認彈出視窗裡的映像位址、標籤正確後按「更新」。
+推上去之後，回 Zeabur 服務頁面（服務狀態），點左下角的「**重啟目前版本**」，會出現「服務重啟成功」提示、狀態變成「啟動中 0/1」，重新拉取 `latest` 映像後恢復「運作中 1/1」。
+
+**⚠️ 觸發方式的實測經驗（2026-07-21）**：
+- **「設定 → 來源」重存相同的映像位址/標籤沒有用**——位址標籤沒變，Zeabur 當作「設定沒變化」不會重新部署。
+- **要用「重啟目前版本」**（對 `latest` 標籤有效，會重新拉映像）。
+- 服務狀態頁若因錯誤出現「更新映像」按鈕，也可以用那顆。
+
+**怎麼確認新版真的上線**（別只看畫面，瀏覽器快取會騙人）：
+
+```bash
+# 線上首頁參照的 JS 檔名，要跟本機 build 產出的 assets/index-*.js 檔名一致
+JS=$(curl -s https://2026nztrip.zeabur.app/ | grep -o 'assets/index-[^"]*\.js' | head -1)
+echo "$JS"
+curl -s -o /dev/null -w "首頁 %{http_code}\n" https://2026nztrip.zeabur.app/
+curl -s -o /dev/null -w "API  %{http_code}\n" https://2026nztrip.zeabur.app/api/cook-dishes
+curl -s "https://2026nztrip.zeabur.app/$JS" | grep -o '你這次改的新文案'   # 抓得到就代表新版上線
+```
+
+注意：**不要把整包 minified JS 先存進 shell 變數再 `echo`**（內容太大會被截斷，grep 就抓不到、造成「其實有上線卻誤判成沒上線」），一律 `curl ... | grep` 直接接。
 
 ## 常見問題
 
