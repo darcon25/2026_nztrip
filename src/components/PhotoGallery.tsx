@@ -227,7 +227,9 @@ export default function PhotoGallery() {
                 <div className="grid grid-cols-2 border-t border-camp-border mt-1.5">
                   <a
                     href={`/api/photos/${photo.id}/file`}
-                    download
+                    download={photo.original_name}
+                    target="_blank"
+                    rel="noopener"
                     className="min-h-[44px] flex items-center justify-center gap-1 text-camp-brown hover:bg-camp-brown/10 text-xs font-black transition-colors"
                   >
                     <Download className="w-4 h-4" /> 下載

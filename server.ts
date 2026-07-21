@@ -436,9 +436,13 @@ async function startServer() {
     const filePath = path.join(UPLOAD_ORIGINALS_DIR, row.stored_file);
     if (!fs.existsSync(filePath)) return res.status(404).end();
     res.setHeader("Content-Type", row.mime_type || "application/octet-stream");
+    // 帶 Content-Length：iOS Safari 的下載管理器遇到沒有長度的串流回應會卡住/失敗
+    res.setHeader("Content-Length", fs.statSync(filePath).size);
+    // 用 inline 而非 attachment：iPhone 會直接顯示原圖，使用者可長按「儲存到照片」；
+    // 桌機的 <a download> 仍會強制下載（同源 download 屬性不受 inline 影響），檔名走 filename*
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename*=UTF-8''${encodeURIComponent(row.original_name)}`
+      `inline; filename*=UTF-8''${encodeURIComponent(row.original_name)}`
     );
     fs.createReadStream(filePath).pipe(res);
   });

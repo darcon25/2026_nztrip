@@ -16,7 +16,7 @@ const quickLinks = [
   { id: 'flights', label: '人員班機', icon: Users },
   { id: 'duty', label: '煮飯輪值', icon: UtensilsCrossed },
   { id: 'lodging', label: '住房資訊', icon: Home },
-  { id: 'budget', label: '費用分攤', icon: Wallet },
+  { id: 'expenses', label: '旅途記帳', icon: Wallet },
   { id: 'photos', label: '相簿', icon: Images },
 ];
 
