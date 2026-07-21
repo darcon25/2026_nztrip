@@ -85,6 +85,18 @@ export default function CookCalendar() {
 
   const families = useMemo(() => Array.from(new Set(cookAssignments.map(a => a.family))), [cookAssignments]);
 
+  // 各家固定顏色：依 families 順序分配（Max 家固定粉紅、其餘輪流 palette），
+  // 選家庭視窗與明細卡片共用同一份，確保每家顏色一致
+  const familyColorMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof familyColor>>();
+    let paletteIdx = 0;
+    for (const f of families) {
+      map.set(f, familyColor(f, paletteIdx));
+      if (f.trim().toLowerCase() !== 'max') paletteIdx += 1;
+    }
+    return map;
+  }, [families]);
+
   const dishMap = useMemo(() => {
     const map = new Map<string, Resolved>();
     for (const row of cookDishes) {
@@ -240,24 +252,19 @@ export default function CookCalendar() {
               <h3 className="text-lg font-black text-camp-text mb-1 text-center">你是哪一家？</h3>
               <p className="text-sm text-camp-muted text-center mb-5 font-medium">選好後才能填寫你家要煮什麼</p>
               <div className="grid grid-cols-2 gap-3">
-                {(() => {
-                  let paletteIdx = 0;
-                  return families.map(f => {
-                    const isMax = f.trim().toLowerCase() === 'max';
-                    const color = familyColor(f, paletteIdx);
-                    if (!isMax) paletteIdx += 1;
-                    return (
-                      <button
-                        key={f}
-                        type="button"
-                        onClick={() => chooseIdentity(f)}
-                        className={`min-h-[52px] rounded-2xl border-2 ${color.border} ${color.bg} ${color.text} font-black text-base ${color.hover} active:scale-[0.99] transition-all`}
-                      >
-                        {f} 家
-                      </button>
-                    );
-                  });
-                })()}
+                {families.map(f => {
+                  const color = familyColorMap.get(f)!;
+                  return (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => chooseIdentity(f)}
+                      className={`min-h-[52px] rounded-2xl border-2 ${color.border} ${color.bg} ${color.text} font-black text-base ${color.hover} active:scale-[0.99] transition-all`}
+                    >
+                      {f} 家
+                    </button>
+                  );
+                })}
               </div>
               <button
                 type="button"
@@ -395,17 +402,18 @@ export default function CookCalendar() {
                   {assignments.map(a => {
                     const resolved = resolvedFor(a);
                     const isMine = identity === a.family;
+                    const color = familyColorMap.get(a.family)!;
                     const isEditingThis = isMine && editing?.dayId === selectedGroup.dayId && editing?.meal === meal;
                     return (
                       <div
                         key={a.family}
-                        className={`rounded-2xl border-2 p-3 ${
-                          isMine ? 'border-camp-brown bg-camp-brown/5' : 'border-camp-border bg-camp-card'
+                        className={`rounded-2xl border-2 p-3 bg-camp-card ${color.border} ${
+                          isMine ? 'ring-2 ring-camp-brown/40' : ''
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-2 min-h-[36px]">
-                            <span className="inline-flex items-center gap-1.5 shrink-0 text-xs font-black text-camp-card bg-camp-brown px-2.5 py-1 rounded-full">
+                            <span className={`inline-flex items-center gap-1.5 shrink-0 text-xs font-black px-2.5 py-1 rounded-full border ${color.border} ${color.bg} ${color.text}`}>
                               <ChefHat className="w-3 h-3" />
                               {a.family} 家
                             </span>
@@ -421,7 +429,7 @@ export default function CookCalendar() {
                               onClick={() => handleFillClick(selectedGroup.dayId, meal, a.family, resolved)}
                               className="min-h-[36px] px-4 py-1.5 rounded-full text-xs font-black bg-camp-brown text-camp-card hover:opacity-90 active:scale-[0.99] transition-all"
                             >
-                              {isMine ? '填寫' : '這是我家，填寫'}
+                              填寫
                             </button>
                           )}
                         </div>
