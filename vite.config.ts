@@ -7,6 +7,10 @@ export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
     plugins: [react(), tailwindcss()],
+    // 不用 Vite 預設的 dist/，避免部署平台把它自動偵測成「純靜態網站」而略過 server.ts 這個後端。
+    build: {
+      outDir: 'web-build',
+    },
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },
