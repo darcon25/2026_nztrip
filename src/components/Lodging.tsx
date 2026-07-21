@@ -57,24 +57,24 @@ export default function Lodging() {
       className="grid grid-cols-1 md:grid-cols-2 gap-6"
     >
       {lodging.map((l, idx) => (
-        <div key={idx} className="bg-camp-card rounded-[2rem] border border-camp-border shadow-sm overflow-hidden flex flex-col gap-4">
-          <div className="relative aspect-video bg-camp-bg">
+        <div key={idx} className="bg-camp-card rounded-[2rem] border border-camp-border shadow-sm overflow-hidden flex flex-col gap-2.5">
+          <div className="relative aspect-[3/1] bg-camp-bg">
             <LodgingPhoto l={l} />
           </div>
 
-          <div className="px-5 md:px-6 flex items-start justify-between gap-3">
+          <div className="px-4 md:px-5 flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <span className="inline-flex items-center px-3 py-1 rounded-full bg-camp-green/15 text-camp-green text-xs font-black border border-camp-green/30 mb-2">
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-camp-green/15 text-camp-green text-xs font-black border border-camp-green/30 mb-1.5">
                 {l.dateRange}
               </span>
-              <h3 className="text-lg font-black text-camp-text tracking-tight flex items-center gap-2">
+              <h3 className="text-base font-black text-camp-text tracking-tight flex items-center gap-2">
                 <Home className="w-5 h-5 text-camp-brown shrink-0" />
                 {l.name}
               </h3>
             </div>
           </div>
 
-          <div className="px-5 md:px-6 flex flex-col gap-4 pb-5 md:pb-6">
+          <div className="px-4 md:px-5 flex flex-col gap-2.5 pb-4 md:pb-5">
             <div className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-camp-brown shrink-0 mt-0.5" />
               <p className="text-sm font-bold text-camp-muted leading-snug">{l.address}</p>
