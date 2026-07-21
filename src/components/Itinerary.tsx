@@ -71,7 +71,7 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
       transition={{ duration: 0.4 }}
       className="bg-camp-card rounded-[1.75rem] border border-camp-border shadow-sm overflow-hidden flex flex-col"
     >
-      <div className="relative aspect-[16/10] bg-camp-bg">
+      <div className="relative aspect-[3/1] bg-camp-bg">
         {stage === 'failed' ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-camp-muted">
             <div className="text-camp-brown">{itemIcon(item)}</div>
@@ -91,9 +91,9 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
         </span>
       </div>
 
-      <div className="p-3.5 md:p-5 flex flex-col gap-2.5 flex-1">
+      <div className="p-3 md:p-4 flex flex-col gap-2 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <h4 className="font-black text-camp-text text-lg tracking-tight leading-snug">{item.label}</h4>
+          <h4 className="font-black text-camp-text text-base tracking-tight leading-snug">{item.label}</h4>
           {item.time && (
             <span className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-black text-camp-brown bg-camp-brown/10 px-2 py-1 rounded-lg">
               <Clock className="w-3.5 h-3.5" />

@@ -229,9 +229,8 @@ export async function getAllData() {
     // Hardcoded arrivals for now as they are not in the provided sheets
     const arrivals: ArrivalData[] = [
       { type: 'First Arrival', time: '7/22 13:25', detail: 'Fenix 家 (2大)\nJerry 家 (2大1小)\nZiv 家 (2大1小)', color: 'bg-sky-600' },
-      { type: '2nd Arrival', time: '7/22 14:35', detail: 'Cathy 家 (4大)', color: 'bg-sky-400' },
-      { type: '3rd Arrival', time: '7/23 00:20', detail: 'Richard 家 (2大2小)', color: 'bg-sky-300' },
-      { type: 'Final Arrival', time: '7/24 14:35', detail: 'Max 家 (2大1小)', color: 'bg-indigo-600' }
+      { type: '2nd Arrival', time: '7/22 14:35', detail: 'Cathy 家 (4大)\nRichard 家 (2大2小)', color: 'bg-sky-400' },
+      { type: 'Final Arrival', time: '7/24 14:35', detail: 'Max 家 (2大1小)\nJames 家 (2大1小)', color: 'bg-indigo-600' }
     ];
 
     const cookAssignmentsRaw = await fetchCSV(COOK_ASSIGNMENT_GID);
