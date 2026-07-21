@@ -48,9 +48,12 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
 
   const navTarget = item.map || item.label;
 
-  const primaryTarget = item.label;
   const trimmedMap = item.map?.trim();
-  const fallbackTarget = trimmedMap && trimmedMap !== item.label ? trimmedMap : null;
+  // 照片查詢用「地名＋地址」當 key：Sheet 改地名或地址都會產生新的查詢字串 → 新的快取 key
+  // → 抓成新地點的照片，不會再卡在上一版地點的舊快取。查不到再退回只用地名。
+  const primaryTarget =
+    trimmedMap && trimmedMap !== item.label ? `${item.label} ${trimmedMap}` : item.label;
+  const fallbackTarget = trimmedMap && trimmedMap !== item.label ? item.label : null;
 
   const photoTarget = stage === 'fallback' && fallbackTarget ? fallbackTarget : primaryTarget;
   const photoSrc = `/api/place-photo?query=${encodeURIComponent(photoTarget)}`;
