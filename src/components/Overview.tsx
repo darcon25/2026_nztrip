@@ -58,7 +58,7 @@ export default function Overview() {
               </div>
               <div className="bg-camp-card p-4 rounded-2xl shadow-sm border border-camp-border">
                 <p className="text-xs font-black text-camp-muted uppercase tracking-widest mb-1 text-center">參與人數</p>
-                <p className="text-3xl font-black text-camp-text text-center">19<span className="text-sm ml-1 text-camp-muted">人</span></p>
+                <p className="text-3xl font-black text-camp-text text-center">22<span className="text-sm ml-1 text-camp-muted">人</span></p>
               </div>
             </div>
           </div>
@@ -84,9 +84,9 @@ export default function Overview() {
             </div>
 
             <div className="mt-8 pt-4 border-t border-camp-border flex justify-between items-center">
-              <p className="text-sm font-black text-camp-muted">總計共 14大 5小</p>
+              <p className="text-sm font-black text-camp-muted">總計共 16大 6小</p>
               <div className="bg-camp-brown text-camp-card px-4 py-1 rounded-full text-xs font-black">
-                19 人
+                22 人
               </div>
             </div>
           </div>
