@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Images, Upload, Download, Trash2, Cloud, ImageOff } from 'lucide-react';
 import PhotoLightbox from './PhotoLightbox';
+import { isIOS } from '../lib/utils';
 
 export interface Photo {
   id: number;
@@ -227,12 +228,12 @@ export default function PhotoGallery() {
                 <div className="grid grid-cols-2 border-t border-camp-border mt-1.5">
                   <a
                     href={`/api/photos/${photo.id}/file`}
-                    download={photo.original_name}
-                    target="_blank"
-                    rel="noopener"
+                    {...(isIOS
+                      ? { target: '_blank', rel: 'noopener' }
+                      : { download: photo.original_name })}
                     className="min-h-[44px] flex items-center justify-center gap-1 text-camp-brown hover:bg-camp-brown/10 text-xs font-black transition-colors"
                   >
-                    <Download className="w-4 h-4" /> 下載
+                    <Download className="w-4 h-4" /> {isIOS ? '開圖存相簿' : '下載'}
                   </a>
                   <button
                     onClick={() => handleDelete(photo.id)}

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import type { Photo } from './PhotoGallery';
+import { isIOS } from '../lib/utils';
 
 const REACTION_EMOJIS = ['❤️', '😂', '😍', '👍', '🔥', '🥹'];
 
@@ -89,12 +90,12 @@ export default function PhotoLightbox({ photos, index, onClose, onNavigate, myRe
             <p className="mb-3 font-bold">此格式無法預覽，請下載後檢視</p>
             <a
               href={`/api/photos/${photo.id}/file`}
-              download={photo.original_name}
-              target="_blank"
-              rel="noopener"
+              {...(isIOS
+                ? { target: '_blank', rel: 'noopener' }
+                : { download: photo.original_name })}
               className="inline-flex items-center gap-2 min-h-[44px] px-4 rounded-full bg-camp-brown text-camp-card font-black"
             >
-              <Download className="w-4 h-4" /> 下載
+              <Download className="w-4 h-4" /> {isIOS ? '開圖存相簿' : '下載'}
             </a>
           </div>
         )}
@@ -140,12 +141,12 @@ export default function PhotoLightbox({ photos, index, onClose, onNavigate, myRe
         <span className="text-xs font-bold truncate flex-1">{photo.original_name}</span>
         <a
           href={`/api/photos/${photo.id}/file`}
-          download={photo.original_name}
-          target="_blank"
-          rel="noopener"
+          {...(isIOS
+            ? { target: '_blank', rel: 'noopener' }
+            : { download: photo.original_name })}
           className="min-h-[44px] px-4 rounded-full bg-camp-card/10 flex items-center gap-2 text-xs font-black shrink-0"
         >
-          <Download className="w-4 h-4" /> 下載原始檔
+          <Download className="w-4 h-4" /> {isIOS ? '開圖存相簿' : '下載原始檔'}
         </a>
       </div>
     </div>
