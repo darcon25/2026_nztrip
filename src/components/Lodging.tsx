@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Home, MapPin, KeyRound, BedDouble, Navigation } from 'lucide-react';
 import { useData } from '../DataContext';
 import type { LodgingData } from '../services/googleSheetService';
+import LodgingNotes from './LodgingNotes';
 
 function openNavigation(address: string) {
   window.open('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address), '_blank');
@@ -110,6 +111,10 @@ export default function Lodging() {
                   <p className="text-sm font-bold text-camp-text leading-snug">{l.roomNote}</p>
                 </div>
               </div>
+            )}
+
+            {(l.address?.trim() || l.name?.trim()) && (
+              <LodgingNotes lodgingKey={(l.address?.trim() || l.name?.trim() || '')} />
             )}
           </div>
         </div>
