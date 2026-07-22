@@ -124,6 +124,15 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS lodging_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lodging_key TEXT NOT NULL,
+    text TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 const ALLOWED_PHOTO_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"];
 
 function isHeic(mimeType: string, filename: string) {
@@ -226,6 +235,33 @@ async function startServer() {
   app.delete("/api/comments/:id", (req, res) => {
     const { id } = req.params;
     const stmt = db.prepare("DELETE FROM comments WHERE id = ?");
+    stmt.run(id);
+    res.json({ success: true });
+  });
+
+  app.get("/api/lodging-notes/:key", (req, res) => {
+    const { key } = req.params;
+    const stmt = db.prepare("SELECT * FROM lodging_notes WHERE lodging_key = ? ORDER BY timestamp DESC");
+    const notes = stmt.all(key);
+    res.json(notes);
+  });
+
+  app.post("/api/lodging-notes", (req, res) => {
+    const { key, text } = req.body;
+    if (!key || String(key).trim() === "") {
+      return res.status(400).json({ error: "Lodging key is required" });
+    }
+    if (!text || text.trim() === "") {
+      return res.status(400).json({ error: "Note text is required" });
+    }
+    const stmt = db.prepare("INSERT INTO lodging_notes (lodging_key, text) VALUES (?, ?)");
+    const info = stmt.run(key, text);
+    res.json({ id: info.lastInsertRowid, lodging_key: key, text, timestamp: new Date().toISOString() });
+  });
+
+  app.delete("/api/lodging-notes/:id", (req, res) => {
+    const { id } = req.params;
+    const stmt = db.prepare("DELETE FROM lodging_notes WHERE id = ?");
     stmt.run(id);
     res.json({ success: true });
   });

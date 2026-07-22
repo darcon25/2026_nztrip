@@ -7,82 +7,151 @@ export const familyBudgets = [
   { id: 'max', name: 'MAX 家', car: 494.1, hotel: 818.0, total: 1312.1 }
 ];
 
+// 備用資料：只有在抓 Google Sheet 失敗時才會用到，內容對齊 Sheet 上完整的 Day 1~10，
+// 避免退回時缺天數。若 Sheet 行程大改，這份也順手更新一下。
 export const days = [
   {
     day: 1,
     date: '7/22',
-    title: '基督城抵達集結',
-    hotel: 'Christchurch Central Hotel',
-    meals: { b: '飛機餐', l: '市區自理', d: '住宿點自己煮' },
+    title: '基督城集結 Day 1',
+    hotel: '基督城 AIR BNB',
+    hotelAddress: '29 Everest Street- Christchurch',
+    meals: { b: '自理', l: '自理', d: '自理' },
     items: [
-      { time: '14:00', label: '首波取車', detail: '領取 Toyota Hiace 主要車隊', map: 'Christchurch Airport' },
-      { time: '18:00', label: '首波採買', detail: '超市：Pak\'nSave Moorhouse<br>297 Moorhouse Ave', map: 'Pak\'nSave Moorhouse' }
+      { time: '14:00', label: '首波取車', detail: 'Cross Country Rentals Christchurch，領取 Toyota Hiace 10人座兩台', map: 'Cross Country Rentals Christchurch' },
+      { time: '18:00', label: '超市採買', detail: 'Woolworths Avonhead 購買初期物資', map: 'Woolworths Avonhead' }
+    ]
+  },
+  {
+    day: 2,
+    date: '7/23',
+    title: '基督城集結 Day 2',
+    hotel: '基督城 AIR BNB',
+    hotelAddress: '29 Everest Street- Christchurch',
+    meals: { b: '自理', l: '自理', d: '自理' },
+    items: [
+      { time: '09:00', label: 'Castle Hill', detail: '參觀巨石陣', map: 'Castle Hill Conservation Area' },
+      { time: '14:00', label: '國際南極中心', detail: 'International Antarctic Centre', map: 'International Antarctic Centre' },
+      { time: '17:00', label: '晚餐 BurgerFuel', detail: 'BurgerFuel Spitfire Square 漢堡餐廳', map: 'BurgerFuel Spitfire Square' }
+    ]
+  },
+  {
+    day: 3,
+    date: '7/24',
+    title: '基督城集結 Day 3',
+    hotel: '基督城露營地 / 基督城 AIR BNB',
+    hotelAddress: 'Tasman Holiday Parks - Christchurch',
+    meals: { b: '自理', l: '自理', d: '超市備料' },
+    items: [
+      { time: '10:00', label: 'Orana Wildlife Park', detail: '早上 10:00 開始營業', map: 'Orana Wildlife Park' },
+      { time: '10:00', label: '高爾夫', detail: 'McLeans Island Golf Club', map: 'McLeans Island Golf Club' },
+      { time: '14:20', label: '市區觀光', detail: 'Christchurch City tour', map: 'Christchurch Botanic Gardens' },
+      { time: '17:00', label: 'James & Max 抵達', detail: 'Tasman Holiday Parks 住露營車', map: 'Tasman Holiday Parks - Christchurch' },
+      { time: '18:00', label: '晚餐 Riverside Market', detail: 'Riverside Market, Christchurch', map: 'Riverside Market Christchurch' }
     ]
   },
   {
     day: 4,
     date: '7/25',
-    title: '探險起點：Tekapo',
-    hotel: 'Lake Tekapo Village Accommodation',
-    meals: { b: '飯店自理', l: 'Fairlie 豬五花派', d: '住宿點自己煮' },
-    deadline: '08:00 R&M 提領露營車任務',
+    title: '探險起點：Tekapo (Day 4)',
+    hotel: 'Tekapo 露營小屋',
+    hotelAddress: 'Lakes Edge Holiday Park',
+    meals: { b: '自煮早餐', l: 'Fairlie 豬五花派', d: '煮飯' },
+    deadline: '08:30 超市集合出發',
     items: [
-      { time: '08:00', label: 'R&M 取車', detail: 'Richard 與 MAX 機場提領露營車', map: 'Christchurch Airport Rental Car' },
-      { time: '10:00', label: '超市會合', detail: '超市：Pak\'nSave Riccarton<br>Riccarton Rd, Christchurch', map: 'Pak\'nSave Riccarton' },
-      { time: '13:15', label: 'Fairlie 派', detail: '名店：Fairlie Bakehouse 豬五花派', map: 'Fairlie Bakehouse' },
-      { time: '13:45', label: '🪁 兒童放電', detail: '公園：Fairlie Playground (正對面)', map: 'Fairlie Playground' },
-      { time: '15:30', label: '♨️ Tekapo Springs', detail: '項目：享受熱池、冬季雪胎體驗', map: 'Tekapo Springs' }
+      { time: '08:30', label: '超市會合', detail: 'PAK\'nSAVE Hornby 集合出發', map: 'PAK\'nSAVE Hornby' },
+      { time: '12:30', label: 'Fairlie 派', detail: '名店：Fairlie Bakehouse 豬五花派', map: 'Fairlie Bakehouse' },
+      { time: '13:45', label: '兒童放電', detail: 'Fairlie Playground（派店正對面）', map: 'Fairlie Playground' },
+      { time: '15:00', label: 'Tekapo Springs', detail: '熱池、雪胎與溜冰體驗', map: 'Tekapo Springs' },
+      { time: '18:00', label: '辦理入住', detail: 'Lakes Edge Holiday Park', map: 'Lakes Edge Holiday Park' },
+      { time: '21:30', label: '觀星', detail: 'Mt. John 暗空保護區導覽（自由參加）', map: 'Mt. John' }
     ]
   },
   {
     day: 5,
     date: '7/26',
-    title: '庫克山與冰川',
-    hotel: 'Alpine Resort Wanaka',
-    meals: { b: '自煮早餐', l: '景觀午餐', d: '住宿點自己煮' },
-    deadline: '09:30 Tekapo 準時發車',
+    title: '庫克山與冰川 (Day 5)',
+    hotel: '皇后鎮住宿',
+    hotelAddress: '21 Saint Samantha Lane',
+    meals: { b: '自煮早餐', l: '隱士飯店', d: 'Cromwell 燒烤餐廳' },
+    deadline: '09:00 Tekapo 自駕出發',
     items: [
-      { time: '10:15', label: '📸 拍照點', detail: 'Peter\'s Lookout 捕捉庫克山全景', map: 'Peter\'s Lookout' },
-      { time: '11:00', label: '步道輕健行', detail: 'Tasman Glacier View Track (看冰湖)', map: 'Tasman Glacier Viewpoint' },
-      { time: '12:30', label: '庫克山午餐', detail: '名店：The Old Mountaineers\' Cafe', map: 'The Old Mountaineers\' Cafe' },
-      { time: '14:00', label: '高山鮭魚', detail: 'High Country Salmon (採買鮮鮭魚)', map: 'High Country Salmon' }
+      { time: '08:30', label: '啟程南下', detail: '沿 SH80 賞 Lake Pukaki 牛奶藍湖', map: 'Lake Pukaki' },
+      { time: '10:15', label: '拍照點', detail: 'Peter\'s Lookout 庫克山全景', map: 'Peter\'s Lookout' },
+      { time: '11:00', label: '步道健行', detail: 'Tasman Glacier View Track', map: 'Tasman Glacier Viewpoint' },
+      { time: '12:30', label: '隱士飯店午餐', detail: 'Sir Edmund Hillary Café & Bar', map: 'Sir Edmund Hillary Café & Bar' },
+      { time: '14:00', label: '高山鮭魚', detail: 'High Country Salmon', map: 'High Country Salmon' },
+      { time: '18:00', label: '燒烤晚餐', detail: 'The Stoaker Room, Cromwell', map: 'The Stoaker Room Cromwell' }
     ]
   },
   {
     day: 6,
     date: '7/27',
-    title: '漢堡與 Skyline',
-    hotel: 'Oaks Shores Resort',
-    meals: { b: 'DIY 早餐', l: '漢堡午餐', d: '19人 BBQ (自己煮)' },
+    title: '蒂阿瑙螢火蟲',
+    hotel: '皇后鎮住宿',
+    hotelAddress: '21 Saint Samantha Lane',
+    meals: { b: '自煮早餐', l: '餐廳', d: '漢堡+肋排外帶+自煮火鍋' },
+    deadline: '07:00 自駕出發',
     items: [
-      { time: '11:30', label: '🍷 酒莊休憩', detail: '中途停靠 Gibbston Valley 酒莊區域', map: 'Gibbston Valley Winery' },
-      { time: '13:30', label: '🍔 必吃漢堡', detail: '名店：Fergburger Queenstown', map: 'Fergburger' },
-      { time: '15:30', label: 'Skyline 皇后鎮', detail: '滑板車 Luge 體驗與鳥瞰湖景', map: 'Skyline Queenstown' },
-      { time: '17:00', label: '超市補給', detail: 'Countdown Queenstown 採購食材', map: 'Countdown Queenstown Grant Road' }
+      { time: '06:30', label: '蒂阿瑙螢火蟲', detail: 'RealNZ 自行開車前往', map: 'Te Anau Visitor Centre' },
+      { time: '13:30', label: '蒂阿瑙午餐', detail: 'The Ranch Bar & Grill', map: 'The Ranch Bar & Grill Te Anau' },
+      { time: '16:00', label: 'Skyline Luge', detail: 'Skyline Queenstown Luge', map: 'Skyline Queenstown' },
+      { time: '20:30', label: '晚餐 火鍋＋羊排', detail: 'Pedro\'s House of Lamb 外帶加自煮火鍋', map: 'Pedro\'s House of Lamb Queenstown' }
+    ]
+  },
+  {
+    day: 7,
+    date: '7/28',
+    title: '米爾福德峽灣',
+    hotel: '皇后鎮住宿',
+    hotelAddress: '21 Saint Samantha Lane',
+    meals: { b: '自煮早餐', l: '餐盒', d: '煮飯' },
+    deadline: '06:30 巴士 AIR BNB 接上車',
+    items: [
+      { time: '06:30', label: 'Milford 巴士接送', detail: 'Airbnb 門口接送', map: 'Queenstown' },
+      { time: '13:00', label: '峽灣巡航', detail: '欣賞瀑布與尋找海豹', map: 'Milford Sound' },
+      { time: '19:30', label: '回程休息', detail: '返回皇后鎮回家煮', map: 'Queenstown' }
+    ]
+  },
+  {
+    day: 8,
+    date: '7/29',
+    title: 'Queenstown 自由活動',
+    hotel: '皇后鎮住宿',
+    hotelAddress: '21 Saint Samantha Lane',
+    meals: { b: '自理', l: '自理', d: '煮飯' },
+    items: [
+      { time: '09:00', label: 'Glenorchy 騎馬', detail: '騎馬 Tour 與格萊諾基碼頭、天堂 Paradise', map: 'Glenorchy' },
+      { time: '10:00', label: '皇后鎮自由活動', detail: '皇后鎮整天自由活動', map: 'Queenstown Mall' }
     ]
   },
   {
     day: 9,
     date: '7/30',
-    title: '老街、伴手禮與企鵝',
-    hotel: 'Oamaru Airbnb',
-    meals: { b: '自煮早餐', l: '公路咖啡廳', d: '自己煮 (超市熟食)' },
-    deadline: '17:00 必須抵達企鵝保護區',
+    title: '前往 Omaru',
+    hotel: 'Omaru AIR BNB',
+    hotelAddress: '24 Tay Street, Oamaru, OTA 9400, New Zealand',
+    meals: { b: '自煮早餐', l: '自理', d: '自理' },
     items: [
-      { time: '15:15', label: '維多利亞區', detail: '老街伴手禮最後掃貨', map: 'Oamaru Victorian Precinct' },
-      { time: '16:50', label: '藍企鵝歸巢', detail: '地點：Oamaru Blue Penguin Colony', map: 'Oamaru Blue Penguin Colony' },
-      { time: '18:45', label: '奧馬魯超市', detail: 'New World Oamaru 買晚餐食材', map: 'New World Oamaru' }
+      { time: '09:00', label: '鹿園高地', detail: '私人農場餵食鹿與羊駝', map: 'Deer Park Heights' },
+      { time: '11:15', label: 'Omarama 午餐', detail: 'Four Square Omarama / The Stoaker Room', map: 'Omarama' },
+      { time: '16:50', label: '藍企鵝歸巢', detail: 'Oamaru Blue Penguin Colony（不可攝影）', map: 'Oamaru Blue Penguin Colony' },
+      { time: '18:45', label: '奧馬魯超市', detail: 'New World Oamaru 買晚餐食材', map: 'New World Oamaru' },
+      { time: '19:45', label: 'Airbnb 入住', detail: '奧馬魯度假屋', map: '24 Tay Street, Oamaru' }
     ]
   },
   {
     day: 10,
     date: '7/31',
-    title: '慶功還車',
-    hotel: 'Lylo Christchurch',
-    meals: { b: 'Airbnb 自煮', l: '慶功午宴', d: '基督城市區自理' },
+    title: '前往基督城',
+    hotel: 'Christchurch Airport 附近住宿',
+    hotelAddress: 'LyLo Christchurch Airport',
+    meals: { b: '餐廳（早午餐）', l: '東東餐廳', d: '自理' },
     items: [
-      { time: '12:30', label: '慶功午宴', detail: '名店：東東家 (Tongs Restaurant)', map: 'Tongs Chinese Restaurant Christchurch' },
-      { time: '17:00', label: '還車任務', detail: '所有車輛統一歸還租賃中心', map: 'Cross County Rental Christchurch' }
+      { time: '09:40', label: '早午餐', detail: 'Star and Garter Restaurant, Oamaru', map: 'Star and Garter Restaurant Oamaru' },
+      { time: '12:30', label: '慶功午宴', detail: 'Formosa Modern Asian Cuisine 台灣美食', map: '173 West Street, Ashburton' },
+      { time: '17:00', label: '歸還租車', detail: 'Cross Country Rentals 機場還車', map: 'Cross County Rental Christchurch' },
+      { time: '18:30', label: 'Lylo 入住', detail: '旅程最後一晚', map: 'Lylo Christchurch' }
     ]
   }
 ];
