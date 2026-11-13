@@ -11,14 +11,19 @@ import DailySummary from './components/DailySummary';
 import PhotoGallery from './components/PhotoGallery';
 
 import { DataProvider } from './DataContext';
+import { ARCHIVE_MODE } from './constants';
 
-const quickLinks = [
+const allQuickLinks = [
   { id: 'flights', label: '人員班機', icon: Users },
   { id: 'duty', label: '煮飯輪值', icon: UtensilsCrossed },
   { id: 'lodging', label: '住房資訊', icon: Home },
   { id: 'expenses', label: '旅途記帳', icon: Wallet },
   { id: 'photos', label: '相簿', icon: Images },
 ];
+
+const quickLinks = ARCHIVE_MODE
+  ? allQuickLinks.filter(({ id }) => id !== 'expenses' && id !== 'photos')
+  : allQuickLinks;
 
 function scrollToSection(id: string) {
   const el = document.getElementById(id);
@@ -127,7 +132,7 @@ export default function App() {
 
         <nav className="sticky top-0 z-50 glass-effect border-b border-camp-border">
           <div className="max-w-6xl mx-auto px-2">
-            <div className="grid grid-cols-5 gap-1">
+            <div className={ARCHIVE_MODE ? 'grid grid-cols-3 gap-1' : 'grid grid-cols-5 gap-1'}>
               {quickLinks.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -167,13 +172,17 @@ export default function App() {
             <Lodging />
           </Section>
 
-          <Section id="expenses" title="旅途記帳">
-            <Expenses />
-          </Section>
+          {!ARCHIVE_MODE && (
+            <>
+              <Section id="expenses" title="旅途記帳">
+                <Expenses />
+              </Section>
 
-          <Section id="photos" title="旅行相簿">
-            <PhotoGallery />
-          </Section>
+              <Section id="photos" title="旅行相簿">
+                <PhotoGallery />
+              </Section>
+            </>
+          )}
 
           <Section id="budget">
             <Budget />

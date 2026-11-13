@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChefHat, UtensilsCrossed, Home } from 'lucide-react';
 import { useData } from '../DataContext';
 import { CookAssignment } from '../services/googleSheetService';
+import { ARCHIVE_MODE } from '../constants';
 
 const MEAL_LABEL: Record<string, string> = { '早': '早餐', '中': '午餐', '午': '午餐', '晚': '晚餐' };
 const QUICK_DISHES = ['火鍋', '白飯', '烤肉', '炒青菜', '湯'];
@@ -125,6 +126,7 @@ export default function CookCalendar() {
   };
 
   const handleFillClick = (dayId: string, meal: string, family: string, resolved: Resolved) => {
+    if (ARCHIVE_MODE) return;
     if (identity === family) {
       startEdit(dayId, meal, resolved);
     } else if (!identity) {

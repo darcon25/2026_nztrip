@@ -1,3 +1,6 @@
+// 紀念版（Zeabur 停運後搬到 Cloudflare，只有前端）：關掉需要後端的留言、記帳、相簿、住宿註記、煮飯菜色編輯
+export const ARCHIVE_MODE = true;
+
 export const familyBudgets = [
   { id: 'fenix', name: 'Fenix 家', car: 635.3, hotel: 817.1, total: 1452.4 },
   { id: 'jerry', name: 'JERRY 家', car: 635.3, hotel: 935.5, total: 1570.8 },

@@ -6,3 +6,4 @@ comments.db
 .photo-cache/
 .uploads/
 .DS_Store
+.wrangler/

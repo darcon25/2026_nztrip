@@ -8,6 +8,7 @@ import {
 import { useData } from '../DataContext';
 import { cn } from '../lib/utils';
 import CommentSection from './CommentSection';
+import { ARCHIVE_MODE } from '../constants';
 import type { DayData, ItineraryItem } from '../services/googleSheetService';
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -143,18 +144,20 @@ const HighlightCard: React.FC<{ day: number; item: ItineraryItem; idx: number }>
             <Navigation className="w-4 h-4" />
             開啟導航
           </button>
-          <button
-            onClick={() => setShowComments((v) => !v)}
-            className={cn(
-              'flex-1 inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl text-sm font-black border-2 transition-colors',
-              showComments
-                ? 'bg-camp-green/10 text-camp-green border-camp-green/40'
-                : 'bg-camp-bg text-camp-text border-camp-border hover:border-camp-brown'
-            )}
-          >
-            <MessageSquare className="w-4 h-4" />
-            留言
-          </button>
+          {!ARCHIVE_MODE && (
+            <button
+              onClick={() => setShowComments((v) => !v)}
+              className={cn(
+                'flex-1 inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl text-sm font-black border-2 transition-colors',
+                showComments
+                  ? 'bg-camp-green/10 text-camp-green border-camp-green/40'
+                  : 'bg-camp-bg text-camp-text border-camp-border hover:border-camp-brown'
+              )}
+            >
+              <MessageSquare className="w-4 h-4" />
+              留言
+            </button>
+          )}
         </div>
 
         {showComments && <CommentSection dayId={day} itemIdx={idx} />}

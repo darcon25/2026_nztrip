@@ -1,0 +1,10 @@
+{
+  "name": "max2026nztrip",
+  "compatibility_date": "2026-11-10",
+  "build": {
+    "command": "npm run build"
+  },
+  "assets": {
+    "directory": "./web-build"
+  }
+}
